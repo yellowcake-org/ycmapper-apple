@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  yc-mapper
+//  ycmapper
 //
 //  Created by Alexander Orlov on 14.11.2023.
 //
@@ -17,8 +17,4 @@ struct ContentView: View {
         }
         .padding()
     }
-}
-
-#Preview {
-    ContentView()
 }
