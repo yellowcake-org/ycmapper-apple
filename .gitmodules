@@ -1,0 +1,3 @@
+[submodule "dependencies/libycvid"]
+	path = dependencies/libycvid
+	url = git@github.com:yellowcake-org/libycvid.git
