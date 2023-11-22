@@ -119,7 +119,9 @@ extension ContentView {
         
         self.database = .init(map: map, root: root)
     }
-    
+}
+
+extension ContentView {
     func parse() {
         self.isProcessing = true
         
@@ -128,17 +130,12 @@ extension ContentView {
             self.load()
         }
         
-        guard let database = self.database 
+        guard let database = self.database
         else { return }
         
         typealias ycmapper_pro_parser_t = ((UInt32, yc_res_pro_object_type) -> yc_res_pro_parse_result_t)
         let pro_parser: ycmapper_pro_parser_t = { pid, type in
-            ycmapper_pro_parser(
-                pid: pid,
-                type: type, 
-                root: database.root,
-                fs_api_ptr: withUnsafePointer(to: io_fs_api, { $0 })
-            )
+            Fetchers.prototype(within: database.root, identifier: pid, for: type)
         }
         
         struct Context { var parser: ycmapper_pro_parser_t }
@@ -164,7 +161,7 @@ extension ContentView {
                 yc_res_pro_object_invalidate(result.object)
                 return type
             }
-
+        
         
         var result = yc_res_map_parse_result_t(map: nil)
         let status = yc_res_map_parse(database.map.path, withUnsafePointer(to: io_fs_api, { $0 }), &fetchers, &result)
@@ -172,12 +169,17 @@ extension ContentView {
         assert(status == YC_RES_MAP_STATUS_OK)
         self.world = .init(map: result.map.pointee)
     }
-    
+}
+
+extension ContentView {
     func load() {
         self.isProcessing = true
         
         DispatchQueue.global(qos: .userInitiated).async(execute: {
-            defer { self.isProcessing = false }
+            defer {
+                self.isProcessing = false
+                self.render()
+            }
             
             guard let world = self.world
             else { return }
@@ -286,12 +288,7 @@ extension ContentView {
             
             typealias ycmapper_frm_parser_t = ((yc_res_pro_object_type, UInt16) -> yc_res_frm_parse_result_t)
             let frm_parser: ycmapper_frm_parser_t = { type, index in
-                ycmapper_frm_parser(
-                    type: type,
-                    index: index,
-                    root: database.root,
-                    fs_api_ptr: withUnsafePointer(to: io_fs_api, { $0 })
-                )
+                Fetchers.sprite(within: database.root, at: index, for: type)
             }
                         
             struct Context {
@@ -308,7 +305,7 @@ extension ContentView {
         
             var db_api = yc_vid_database_api(
                 context: .init(mutating: withUnsafePointer(to: db_ctx, { $0 }))
-            ) {type, sprite_idx, result, ctx in
+            ) { type, sprite_idx, result, ctx in
                 guard let result = result
                 else { return YC_VID_STATUS_INPUT }
                 
@@ -342,11 +339,11 @@ extension ContentView {
             let tick_status = yc_vid_view_frame_tick(&result, &renderer, &seconds)
         
             assert(YC_VID_STATUS_OK == tick_status)
-            
-            self.render()
         })
     }
-    
+}
+
+extension ContentView {
     func render() {
         for (_, texture) in self.textures {
             guard texture.isVisible else { continue }
@@ -366,97 +363,4 @@ extension ContentView {
             size: .init(width: self.ctx.width, height: self.ctx.height)
         )
     }
-}
-
-func ycmapper_pro_parser(
-    pid: UInt32,
-    type: yc_res_pro_object_type_t,
-    root: URL,
-    fs_api_ptr: UnsafePointer<yc_res_io_fs_api_t>
-) -> yc_res_pro_parse_result_t {
-    var lst_result = yc_res_lst_parse_result_t(entries: nil)
-    let lst_status = yc_res_lst_parse(
-        root.appending(path: {
-            switch type {
-            case YC_RES_PRO_OBJECT_TYPE_TILE: return "PROTO/TILES/TILES.LST"
-            case YC_RES_PRO_OBJECT_TYPE_ITEM: return "PROTO/ITEMS/ITEMS.LST"
-            case YC_RES_PRO_OBJECT_TYPE_SCENERY: return "PROTO/SCENERY/SCENERY.LST"
-            default: fatalError()
-            }
-        }()).path, fs_api_ptr, &lst_result
-    )
-    
-    assert(lst_status == YC_RES_LST_STATUS_OK)
-    
-    let index = yc_res_pro_index_from_object_id(pid) - 1
-    let entries = Array(
-        UnsafeBufferPointer(
-            start: lst_result.entries.pointee.pointers,
-            count: lst_result.entries.pointee.count
-        )
-    )
-    
-    let pro_filename = root
-        .appending(path: {
-                switch type {
-                case YC_RES_PRO_OBJECT_TYPE_TILE: return "PROTO/TILES/"
-                case YC_RES_PRO_OBJECT_TYPE_ITEM: return "PROTO/ITEMS/"
-                case YC_RES_PRO_OBJECT_TYPE_SCENERY: return "PROTO/SCENERY/"
-                default: fatalError()
-                }
-        }()
-        .appending(String(cString: entries[Int(index)].value))).path
-    
-    for var entry in entries { yc_res_lst_invalidate(&entry) }
-    
-    var pro_result = yc_res_pro_parse_result_t(object: nil)
-    let pro_status = yc_res_pro_parse(pro_filename, withUnsafePointer(to: io_fs_api, { $0 }), &pro_result)
-    
-    assert(pro_status == YC_RES_PRO_STATUS_OK)
-    
-    return pro_result
-}
-
-func ycmapper_frm_parser(
-    type: yc_res_pro_object_type_t,
-    index: UInt16,
-    root: URL,
-    fs_api_ptr: UnsafePointer<yc_res_io_fs_api_t>
-) -> yc_res_frm_parse_result_t {
-    var lst_result = yc_res_lst_parse_result_t(entries: nil)
-    let lst_status = yc_res_lst_parse(
-        root.appending(path: {
-            switch type {
-            case YC_RES_PRO_OBJECT_TYPE_TILE: return "ART/TILES/TILES.LST"
-            default: fatalError()
-            }
-        }()).path, fs_api_ptr, &lst_result
-    )
-    
-    assert(lst_status == YC_RES_LST_STATUS_OK)
-    
-    let entries = Array(
-        UnsafeBufferPointer(
-            start: lst_result.entries.pointee.pointers,
-            count: lst_result.entries.pointee.count
-        )
-    )
-    
-    let frm_filename = root
-        .appending(path: {
-                switch type {
-                case YC_RES_PRO_OBJECT_TYPE_TILE: return "ART/TILES/"
-                default: fatalError()
-                }
-        }()
-        .appending(String(cString: entries[Int(index)].value))).path
-    
-    for var entry in entries { yc_res_lst_invalidate(&entry) }
-    
-    var frm_result = yc_res_frm_parse_result_t()
-    let frm_status = yc_res_frm_parse(frm_filename, fs_api_ptr, &frm_result)
-    
-    assert(frm_status == YC_RES_FRM_STATUS_OK)
-    
-    return frm_result
 }

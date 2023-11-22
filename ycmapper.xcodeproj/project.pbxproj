@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B406ECAA2B0EA42B0008C796 /* io.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECA92B0EA42B0008C796 /* io.swift */; };
+		B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECAD2B0EAE870008C796 /* fetchers.swift */; };
 		B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302A2B03EC5900DBB05B /* ycmapper.swift */; };
 		B49D302D2B03EC5900DBB05B /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302B2B03EC5900DBB05B /* View.swift */; };
 		B49D325D2B03EF4100DBB05B /* libycenv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31B02B03ECDF00DBB05B /* libycenv.a */; };
@@ -195,6 +196,7 @@
 
 /* Begin PBXFileReference section */
 		B406ECA92B0EA42B0008C796 /* io.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = io.swift; sourceTree = "<group>"; };
+		B406ECAD2B0EAE870008C796 /* fetchers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fetchers.swift; sourceTree = "<group>"; };
 		B49D300B2B03EB9900DBB05B /* ycmapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ycmapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B49D30292B03EC5900DBB05B /* ycmapper.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = ycmapper.entitlements; sourceTree = "<group>"; };
 		B49D302A2B03EC5900DBB05B /* ycmapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ycmapper.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 				B406EC902B0EA2970008C796 /* config */,
 				B406ECAB2B0EA82D0008C796 /* views */,
 				B406ECA82B0EA41D0008C796 /* platform */,
+				B406ECAC2B0EAE6D0008C796 /* fetchers */,
 			);
 			path = macOS;
 			sourceTree = "<group>";
@@ -251,6 +254,14 @@
 				B49D302B2B03EC5900DBB05B /* View.swift */,
 			);
 			path = views;
+			sourceTree = "<group>";
+		};
+		B406ECAC2B0EAE6D0008C796 /* fetchers */ = {
+			isa = PBXGroup;
+			children = (
+				B406ECAD2B0EAE870008C796 /* fetchers.swift */,
+			);
+			path = fetchers;
 			sourceTree = "<group>";
 		};
 		B49D30022B03EB9900DBB05B = {
@@ -551,6 +562,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B49D302D2B03EC5900DBB05B /* View.swift in Sources */,
+				B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */,
 				B406ECAA2B0EA42B0008C796 /* io.swift in Sources */,
 				B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */,
 			);
