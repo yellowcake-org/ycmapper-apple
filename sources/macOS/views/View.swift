@@ -57,17 +57,6 @@ struct ContentView: View {
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )!
     
-    @State
-    private var fs_api = yc_res_io_fs_api_t { filename, mode in
-        .init(mutating: fopen(filename, mode))
-    } fclose: { file in
-        fclose(file!.assumingMemoryBound(to: FILE.self))
-    } fread: { dest, size, nitems, file in
-        fread(dest, size, nitems, file!.assumingMemoryBound(to: FILE.self))
-    } fseek: { file, num, mode in
-        fseek(file!.assumingMemoryBound(to: FILE.self), num, mode)
-    }
-    
     var body: some View {
         if self.database == nil {
             Button(action: {
@@ -144,7 +133,12 @@ extension ContentView {
         
         typealias ycmapper_pro_parser_t = ((UInt32, yc_res_pro_object_type) -> yc_res_pro_parse_result_t)
         let pro_parser: ycmapper_pro_parser_t = { pid, type in
-            ycmapper_pro_parser(pid: pid, type: type, root: database.root, fsAPI: &fs_api)
+            ycmapper_pro_parser(
+                pid: pid,
+                type: type, 
+                root: database.root,
+                fs_api_ptr: withUnsafePointer(to: io_fs_api, { $0 })
+            )
         }
         
         struct Context { var parser: ycmapper_pro_parser_t }
@@ -173,7 +167,7 @@ extension ContentView {
 
         
         var result = yc_res_map_parse_result_t(map: nil)
-        let status = yc_res_map_parse(database.map.path, &fs_api, &fetchers, &result)
+        let status = yc_res_map_parse(database.map.path, withUnsafePointer(to: io_fs_api, { $0 }), &fetchers, &result)
         
         assert(status == YC_RES_MAP_STATUS_OK)
         self.world = .init(map: result.map.pointee)
@@ -292,7 +286,12 @@ extension ContentView {
             
             typealias ycmapper_frm_parser_t = ((yc_res_pro_object_type, UInt16) -> yc_res_frm_parse_result_t)
             let frm_parser: ycmapper_frm_parser_t = { type, index in
-                ycmapper_frm_parser(type: type, index: index, root: database.root, fsAPI: &fs_api)
+                ycmapper_frm_parser(
+                    type: type,
+                    index: index,
+                    root: database.root,
+                    fs_api_ptr: withUnsafePointer(to: io_fs_api, { $0 })
+                )
             }
                         
             struct Context {
@@ -304,7 +303,7 @@ extension ContentView {
             let db_ctx = Context(
                 parser: frm_parser,
                 root: database.root,
-                fs_api: withUnsafePointer(to: fs_api, { $0 })
+                fs_api: withUnsafePointer(to: io_fs_api, { $0 })
             )
         
             var db_api = yc_vid_database_api(
@@ -373,7 +372,7 @@ func ycmapper_pro_parser(
     pid: UInt32,
     type: yc_res_pro_object_type_t,
     root: URL,
-    fsAPI: inout yc_res_io_fs_api_t
+    fs_api_ptr: UnsafePointer<yc_res_io_fs_api_t>
 ) -> yc_res_pro_parse_result_t {
     var lst_result = yc_res_lst_parse_result_t(entries: nil)
     let lst_status = yc_res_lst_parse(
@@ -384,7 +383,7 @@ func ycmapper_pro_parser(
             case YC_RES_PRO_OBJECT_TYPE_SCENERY: return "PROTO/SCENERY/SCENERY.LST"
             default: fatalError()
             }
-        }()).path, &fsAPI, &lst_result
+        }()).path, fs_api_ptr, &lst_result
     )
     
     assert(lst_status == YC_RES_LST_STATUS_OK)
@@ -411,7 +410,7 @@ func ycmapper_pro_parser(
     for var entry in entries { yc_res_lst_invalidate(&entry) }
     
     var pro_result = yc_res_pro_parse_result_t(object: nil)
-    let pro_status = yc_res_pro_parse(pro_filename, &fsAPI, &pro_result)
+    let pro_status = yc_res_pro_parse(pro_filename, withUnsafePointer(to: io_fs_api, { $0 }), &pro_result)
     
     assert(pro_status == YC_RES_PRO_STATUS_OK)
     
@@ -422,7 +421,7 @@ func ycmapper_frm_parser(
     type: yc_res_pro_object_type_t,
     index: UInt16,
     root: URL,
-    fsAPI: inout yc_res_io_fs_api_t
+    fs_api_ptr: UnsafePointer<yc_res_io_fs_api_t>
 ) -> yc_res_frm_parse_result_t {
     var lst_result = yc_res_lst_parse_result_t(entries: nil)
     let lst_status = yc_res_lst_parse(
@@ -431,12 +430,11 @@ func ycmapper_frm_parser(
             case YC_RES_PRO_OBJECT_TYPE_TILE: return "ART/TILES/TILES.LST"
             default: fatalError()
             }
-        }()).path, &fsAPI, &lst_result
+        }()).path, fs_api_ptr, &lst_result
     )
     
     assert(lst_status == YC_RES_LST_STATUS_OK)
     
-//    let index = index - 1
     let entries = Array(
         UnsafeBufferPointer(
             start: lst_result.entries.pointee.pointers,
@@ -456,7 +454,7 @@ func ycmapper_frm_parser(
     for var entry in entries { yc_res_lst_invalidate(&entry) }
     
     var frm_result = yc_res_frm_parse_result_t()
-    let frm_status = yc_res_frm_parse(frm_filename, &fsAPI, &frm_result)
+    let frm_status = yc_res_frm_parse(frm_filename, fs_api_ptr, &frm_result)
     
     assert(frm_status == YC_RES_FRM_STATUS_OK)
     
