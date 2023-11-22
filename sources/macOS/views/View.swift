@@ -17,11 +17,6 @@ struct ContentView: View {
         var isVisible: Bool
     }
     
-    struct Database {
-        let map: URL
-        let root: URL
-    }
-    
     struct World {
         let map: yc_res_map_t
     }
@@ -33,7 +28,7 @@ struct ContentView: View {
     private var isProcessing: Bool = false
     
     @State
-    private var database: Database?
+    private var fetcher: Fetcher?
     
     @State
     private var world: World?
@@ -58,7 +53,7 @@ struct ContentView: View {
     )!
     
     var body: some View {
-        if self.database == nil {
+        if self.fetcher == nil {
             Button(action: {
                 self.isImporting.toggle()
             }, label: {
@@ -117,7 +112,7 @@ extension ContentView {
         assert(root.lastPathComponent == "MAPS")
         root = root.deletingLastPathComponent()
         
-        self.database = .init(map: map, root: root)
+        self.fetcher = .init(map: map, root: root)
     }
 }
 
@@ -130,32 +125,24 @@ extension ContentView {
             self.load()
         }
         
-        guard let database = self.database
+        guard let fetcher = self.fetcher
         else { return }
-        
-        typealias ycmapper_pro_parser_t = ((UInt32, yc_res_pro_object_type) -> yc_res_pro_parse_result_t)
-        let pro_parser: ycmapper_pro_parser_t = { pid, type in
-            Fetchers.prototype(within: database.root, identifier: pid, for: type)
-        }
-        
-        struct Context { var parser: ycmapper_pro_parser_t }
-        let ctx = Context(parser: pro_parser)
-        
+                
         var fetchers = yc_res_map_parse_db_api_t(
-            context: withUnsafePointer(to: ctx, { $0 })) { pid, ctx in
-                guard let ctx = ctx?.assumingMemoryBound(to: Context.self).pointee
+            context: withUnsafePointer(to: fetcher, { $0 })) { pid, ctx in
+                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
                 else { return YC_RES_PRO_OBJECT_ITEM_TYPE_KEY }
                 
-                let result = ctx.parser(pid, YC_RES_PRO_OBJECT_TYPE_ITEM)
+                let result = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
                 let type = result.object.pointee.data.item.pointee.type
                 
                 yc_res_pro_object_invalidate(result.object)
                 return type
             } scenery_type_from_pid: { pid, ctx in
-                guard let ctx = ctx?.assumingMemoryBound(to: Context.self).pointee
+                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
                 else { return YC_RES_PRO_OBJECT_SCENERY_TYPE_GENERIC }
                 
-                let result = ctx.parser(pid, YC_RES_PRO_OBJECT_TYPE_SCENERY)
+                let result = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
                 let type = result.object.pointee.data.scenery.pointee.type
                 
                 yc_res_pro_object_invalidate(result.object)
@@ -164,7 +151,7 @@ extension ContentView {
         
         
         var result = yc_res_map_parse_result_t(map: nil)
-        let status = yc_res_map_parse(database.map.path, withUnsafePointer(to: io_fs_api, { $0 }), &fetchers, &result)
+        let status = yc_res_map_parse(fetcher.map.path, withUnsafePointer(to: io_fs_api, { $0 }), &fetchers, &result)
         
         assert(status == YC_RES_MAP_STATUS_OK)
         self.world = .init(map: result.map.pointee)
@@ -184,7 +171,7 @@ extension ContentView {
             guard let world = self.world
             else { return }
             
-            guard let database = self.database
+            guard let fetcher = self.fetcher
             else { return }
             
             let ts_api = yc_vid_texture_api_t { data, destination, ctx in
@@ -286,49 +273,14 @@ extension ContentView {
                 return YC_VID_STATUS_OK
             }
             
-            typealias ycmapper_frm_parser_t = ((yc_res_pro_object_type, UInt16) -> yc_res_frm_parse_result_t)
-            let frm_parser: ycmapper_frm_parser_t = { type, index in
-                Fetchers.sprite(within: database.root, at: index, for: type)
-            }
-                        
-            struct Context {
-                var parser: ycmapper_frm_parser_t
-                var root: URL
-                var fs_api: UnsafePointer<yc_res_io_fs_api_t>
-            }
-            
-            let db_ctx = Context(
-                parser: frm_parser,
-                root: database.root,
-                fs_api: withUnsafePointer(to: io_fs_api, { $0 })
-            )
-        
-            var db_api = yc_vid_database_api(
-                context: .init(mutating: withUnsafePointer(to: db_ctx, { $0 }))
-            ) { type, sprite_idx, result, ctx in
-                guard let result = result
-                else { return YC_VID_STATUS_INPUT }
-                
-                guard let ctx = ctx?.assumingMemoryBound(to: Context.self).pointee
-                else { return YC_VID_STATUS_INPUT }
-                
-                let parsed = ctx.parser(type, sprite_idx)
-                result.pointee.frm.sprite = parsed.sprite
-                
-                // TODO: Find proper palette!
-                let pal_status = yc_res_pal_parse(ctx.root.appending(path: "COLOR.PAL").path, ctx.fs_api, &result.pointee.pal)
-                assert(YC_RES_PAL_STATUS_OK == pal_status)
-                
-                return YC_VID_STATUS_OK
-            }
-            
+            var db = fetcher.database()
             var renderer = yc_vid_renderer_t(
                 context: .init(mutating: withUnsafePointer(to: self, { $0 })),
                 texture: withUnsafePointer(to: ts_api, { $0 })
             )
             
             var result = yc_vid_view_t()
-            let status = yc_vid_view_initialize(&result, world.map.levels.0, &renderer, &db_api)
+            let status = yc_vid_view_initialize(&result, world.map.levels.0, &renderer, &db)
             
             assert(status == YC_VID_STATUS_OK)
             

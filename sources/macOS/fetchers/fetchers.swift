@@ -7,9 +7,11 @@
 
 import Foundation
 
-public struct Fetchers {
-    public static 
-    func sprite(within root: URL, at index: UInt16, for type: yc_res_pro_object_type_t) -> yc_res_frm_parse_result_t {
+public struct Fetcher {
+    public let map: URL
+    public let root: URL
+    
+    public func sprite(at index: UInt16, for type: yc_res_pro_object_type_t) -> yc_res_frm_parse_result_t {
         let subpath = switch type {
         case YC_RES_PRO_OBJECT_TYPE_TILE: "ART/TILES/"
         default: fatalError()
@@ -22,7 +24,7 @@ public struct Fetchers {
         
         var lst_result = yc_res_lst_parse_result_t(entries: nil)
         let lst_status = yc_res_lst_parse(
-            root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }),
+            self.root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }),
             &lst_result
         )
         
@@ -49,8 +51,7 @@ public struct Fetchers {
         return frm_result
     }
     
-    public static
-    func prototype(within root: URL, identifier pid: UInt32, for type: yc_res_pro_object_type_t) -> yc_res_pro_parse_result_t {
+    public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) -> yc_res_pro_parse_result_t {
         let subpath = switch type {
         case YC_RES_PRO_OBJECT_TYPE_TILE: "PROTO/TILES/"
         case YC_RES_PRO_OBJECT_TYPE_ITEM: "PROTO/ITEMS/"
@@ -92,5 +93,34 @@ public struct Fetchers {
         assert(pro_status == YC_RES_PRO_STATUS_OK)
         
         return pro_result
+    }
+    
+    public func database() -> yc_vid_database_api_t {
+        let result = yc_vid_database_api(
+            context: withUnsafePointer(to: self, { .init(mutating: $0) }),
+            fetch: { type, sprite_idx, result, ctx in
+                guard let result = result
+                else { return YC_VID_STATUS_INPUT }
+                
+                guard let ctx = ctx?.assumingMemoryBound(to: Self.self).pointee
+                else { return YC_VID_STATUS_INPUT }
+                
+                let parsed = ctx.sprite(at: sprite_idx, for: type)
+                result.pointee.frm.sprite = parsed.sprite
+                
+                // TODO: Find proper palette!
+                let pal_status = yc_res_pal_parse(
+                    ctx.root.appending(path: "COLOR.PAL").path,
+                    withUnsafePointer(to: io_fs_api, { $0 }),
+                    &result.pointee.pal
+                )
+                
+                assert(YC_RES_PAL_STATUS_OK == pal_status)
+                
+                return YC_VID_STATUS_OK
+            }
+        )
+        
+        return result
     }
 }
