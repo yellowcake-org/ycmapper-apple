@@ -11,7 +11,7 @@ import AppKit
 import SwiftUI
 import Combine
 
-public class BitmapRenderer {
+public class BitmapRenderer: ObservableObject {
     public let callbacks: yc_vid_texture_api_t
     
     @Published
@@ -33,7 +33,7 @@ public class BitmapRenderer {
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )!
     
-    public init(fetcher: Fetcher) {
+    public init() {
         self.callbacks = yc_vid_texture_api_t { data, destination, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .initialize(data: data, destination: destination) ?? YC_VID_STATUS_CORRUPTED
@@ -70,10 +70,14 @@ public extension BitmapRenderer {
             )
         }
         
-        self.canvas = .init(
-            cgImage: self.ctx.makeImage()!,
-            size: .init(width: self.ctx.width, height: self.ctx.height)
-        )
+        let frame = self.ctx.makeImage()!
+        
+        DispatchQueue.main.async(execute: {
+            self.canvas = .init(
+                cgImage: frame,
+                size: .init(width: self.ctx.width, height: self.ctx.height)
+            )
+        })
     }
 }
 
