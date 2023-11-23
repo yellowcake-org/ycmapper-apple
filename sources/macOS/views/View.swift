@@ -14,9 +14,6 @@ struct ContentView: View {
         
     @State
     private var isProcessing: Bool = false
-    
-//    @State
-//    private var hasFrame: Bool = false
         
     @State
     private var map: yc_res_map_t = .init()
@@ -38,16 +35,6 @@ struct ContentView: View {
                 Text("Open map")
             })
             .padding()
-            .onDisappear(perform: {
-//                guard var view = self.view else { return }
-//                guard var renderer = self.renderer else { return }
-//    
-//                yc_vid_view_invalidate(&view, &renderer)
-            })
-            .onDisappear(perform: {
-//                guard var map = self.world?.map else { return }
-//                yc_res_map_invalidate(&map)
-            })
             .fileImporter(
                 isPresented: self.$isImporting,
                 allowedContentTypes: [.init(filenameExtension: "map")!, .init(filenameExtension: "MAP")!],
@@ -115,6 +102,8 @@ extension ContentView {
                 let type = result.object.pointee.data.item.pointee.type
                 
                 yc_res_pro_object_invalidate(result.object)
+                result.object.deallocate()
+                
                 return type
             } scenery_type_from_pid: { pid, ctx in
                 guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
@@ -124,6 +113,8 @@ extension ContentView {
                 let type = result.object.pointee.data.scenery.pointee.type
                 
                 yc_res_pro_object_invalidate(result.object)
+                result.object.deallocate()
+                
                 return type
             }
         
@@ -143,8 +134,17 @@ extension ContentView {
         
         DispatchQueue.global(qos: .userInitiated).async(execute: {
             defer {
+                defer { self.isProcessing = false }
+                
                 self.renderer.render()
-                self.isProcessing = false
+                
+                let renderer = yc_vid_renderer_t(
+                    context: withUnsafePointer(to: self.renderer, { .init(mutating: $0) }),
+                    texture: withUnsafePointer(to: self.renderer.callbacks, { $0 })
+                )
+                
+                yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
+                yc_res_map_invalidate(&self.map)
             }
             
             guard let fetcher = self.fetcher else { return }
@@ -153,10 +153,10 @@ extension ContentView {
                 context: withUnsafePointer(to: fetcher, { .init(mutating: $0) }),
                 fetch: { type, sprite_idx, result, ctx in
                     guard let result = result
-                    else { return YC_VID_STATUS_INPUT }
+                    else { return YC_VID_STATUS_CORRUPTED }
                     
                     guard let ctx = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                    else { return YC_VID_STATUS_INPUT }
+                    else { return YC_VID_STATUS_CORRUPTED }
                     
                     let parsed = ctx.sprite(at: sprite_idx, for: type)
                     result.pointee.frm.sprite = parsed.sprite
@@ -174,18 +174,25 @@ extension ContentView {
                 }
             )
         
-            let native = yc_vid_renderer_t(
+            let renderer = yc_vid_renderer_t(
                 context: withUnsafePointer(to: self.renderer, { .init(mutating: $0) }),
                 texture: withUnsafePointer(to: self.renderer.callbacks, { $0 })
             )
             
-            let status = yc_vid_view_initialize(&self.view, self.map.levels.0, withUnsafePointer(to: native, { $0 }), &db_api)
+            let status = yc_vid_view_initialize(
+                &self.view,
+                self.map.levels.0,
+                withUnsafePointer(to: renderer, { $0 }),
+                &db_api
+            )
             
             assert(status == YC_VID_STATUS_OK)
             
             let seconds = yc_vid_time_seconds(value: 0, scale: self.view.time.scale)
             let tick_status = yc_vid_view_frame_tick(
-                &self.view, withUnsafePointer(to: native, { $0 }), withUnsafePointer(to: seconds, { $0 })
+                &self.view,
+                withUnsafePointer(to: renderer, { $0 }),
+                withUnsafePointer(to: seconds, { $0 })
             )
             
             assert(YC_VID_STATUS_OK == tick_status)

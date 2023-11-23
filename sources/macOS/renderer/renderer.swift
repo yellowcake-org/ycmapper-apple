@@ -18,12 +18,24 @@ public class BitmapRenderer: ObservableObject {
     private(set) public var canvas: NSImage? = nil
     
     private var textures: [UUID : Texture] = .init()
-    private struct Texture {
+    private class Texture {
         var uuid: UUID
         let image: CGImage
         let shift: CGPoint
         var rect: CGRect
         var isVisible: Bool
+        
+        deinit {
+            debugPrint("deinit TEXTURE")
+        }
+        
+        init(uuid: UUID, image: CGImage, shift: CGPoint, rect: CGRect, isVisible: Bool) {
+            self.uuid = uuid
+            self.image = image
+            self.shift = shift
+            self.rect = rect
+            self.isVisible = isVisible
+        }
     }
     
     private let ctx = CGContext(
@@ -33,6 +45,10 @@ public class BitmapRenderer: ObservableObject {
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )!
     
+    deinit {
+        debugPrint("deinit RENDERER")
+    }
+    
     public init() {
         self.callbacks = yc_vid_texture_api_t { data, destination, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
@@ -41,7 +57,7 @@ public class BitmapRenderer: ObservableObject {
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .invalidate(texture: texture) ?? YC_VID_STATUS_CORRUPTED
         } is_equal: { lhs, rhs in
-            lhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee 
+            lhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
             ==
             rhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         } set_visibility: { texture, visibility, ctx in
@@ -90,35 +106,9 @@ private extension BitmapRenderer {
     ) -> yc_vid_status_t {
         guard let data = data?.pointee else { return YC_VID_STATUS_INPUT }
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
-        
-        var rgba: [UInt8] = Array(
-            repeating: 0,
-            count: Int(data.dimensions.horizontal * data.dimensions.vertical) * 4 // count(RGBA) == 4
-        )
-        
-        let colors = Array(
-            UnsafeBufferPointer(
-                start: data.pixels,
-                count: Int(data.dimensions.horizontal * data.dimensions.vertical)
-            )
-        )
-        
-        for v_idx in 0..<Int(data.dimensions.vertical) {
-            for h_idx in 0..<Int(data.dimensions.horizontal) {
-                let rows = v_idx * (Int(data.dimensions.horizontal) * 4)
                 
-                var color = colors[h_idx + v_idx * Int(data.dimensions.horizontal)]
-                let isTransparent = yc_res_pal_color_is_transparent(&color)
-                
-                rgba[(h_idx * 4 + 0) + rows] = color.r
-                rgba[(h_idx * 4 + 1) + rows] = color.g
-                rgba[(h_idx * 4 + 2) + rows] = color.b
-                rgba[(h_idx * 4 + 3) + rows] = isTransparent ? .min : .max
-            }
-        }
-        
         let ref = CGContext(
-            data: &rgba,
+            data: nil,
             width: Int(data.dimensions.horizontal),
             height: Int(data.dimensions.vertical),
             bitsPerComponent: 8, // UInt8
@@ -126,6 +116,22 @@ private extension BitmapRenderer {
             space: .init(name: CGColorSpace.sRGB)!,
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )!
+        
+        for v_idx in 0..<Int(data.dimensions.vertical) {
+            for h_idx in 0..<Int(data.dimensions.horizontal) {
+                let rows = v_idx * (Int(data.dimensions.horizontal) * 4)
+                var color = data.pixels.advanced(by: h_idx + v_idx * Int(data.dimensions.horizontal)).pointee
+                
+                ref.data?.assumingMemoryBound(to: UInt8.self)
+                    .advanced(by: (h_idx * 4 + 0) + rows).pointee = color.r
+                ref.data?.assumingMemoryBound(to: UInt8.self)
+                    .advanced(by: (h_idx * 4 + 1) + rows).pointee = color.g
+                ref.data?.assumingMemoryBound(to: UInt8.self)
+                    .advanced(by: (h_idx * 4 + 2) + rows).pointee = color.b
+                ref.data?.assumingMemoryBound(to: UInt8.self)
+                    .advanced(by: (h_idx * 4 + 3) + rows).pointee = yc_res_pal_color_is_transparent(&color) ? .min : .max
+            }
+        }
          
         let texture: Texture = .init(
             uuid: .init(),
@@ -154,11 +160,11 @@ private extension BitmapRenderer {
         guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         else { return YC_VID_STATUS_INPUT }
         
-        self.textures.removeValue(forKey: uuid)
-        
-        // freeing what alloced in init ^^^
+        // freeing what allocated in init ^^^
         texture?.pointee.handle.deallocate()
         texture?.pointee.handle = nil
+        
+        self.textures.removeValue(forKey: uuid)
         
         return YC_VID_STATUS_OK
     }

@@ -7,9 +7,18 @@
 
 import Foundation
 
-public struct Fetcher {
+public class Fetcher {
     public let map: URL
     public let root: URL
+    
+    deinit {
+        debugPrint("deinit FETCHER")
+    }
+    
+    init(map: URL, root: URL) {
+        self.map = map
+        self.root = root
+    }
     
     public func sprite(at index: UInt16, for type: yc_res_pro_object_type_t) -> yc_res_frm_parse_result_t {
         let subpath = switch type {
@@ -22,7 +31,7 @@ public struct Fetcher {
         default: fatalError()
         }
         
-        var lst_result = yc_res_lst_parse_result_t(entries: nil)
+        var lst_result = yc_res_lst_entries_t()
         let lst_status = yc_res_lst_parse(
             self.root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }),
             &lst_result
@@ -32,16 +41,17 @@ public struct Fetcher {
         
         let entries = Array(
             UnsafeBufferPointer(
-                start: lst_result.entries.pointee.pointers,
-                count: lst_result.entries.pointee.count
+                start: lst_result.pointers,
+                count: lst_result.count
             )
         )
         
-        let frm_filename = root
+        let frm_filename = self.root
             .appending(path: subpath)
             .appending(path: String(cString: entries[Int(index)].value)).path
         
         for var entry in entries { yc_res_lst_invalidate(&entry) }
+        lst_result.pointers.deallocate()
         
         var frm_result = yc_res_frm_parse_result_t()
         let frm_status = yc_res_frm_parse(frm_filename, withUnsafePointer(to: io_fs_api, { $0 }), &frm_result)
@@ -66,9 +76,9 @@ public struct Fetcher {
         default: fatalError()
         }
         
-        var lst_result = yc_res_lst_parse_result_t(entries: nil)
+        var lst_result = yc_res_lst_entries_t()
         let lst_status = yc_res_lst_parse(
-            root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }), &lst_result
+            self.root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }), &lst_result
         )
         
         assert(lst_status == YC_RES_LST_STATUS_OK)
@@ -76,16 +86,17 @@ public struct Fetcher {
         let index = yc_res_pro_index_from_object_id(pid) - 1
         let entries = Array(
             UnsafeBufferPointer(
-                start: lst_result.entries.pointee.pointers,
-                count: lst_result.entries.pointee.count
+                start: lst_result.pointers,
+                count: lst_result.count
             )
         )
         
-        let pro_filename = root
+        let pro_filename = self.root
             .appending(path: subpath)
             .appending(path: String(cString: entries[Int(index)].value)).path
         
         for var entry in entries { yc_res_lst_invalidate(&entry) }
+        lst_result.pointers.deallocate()
         
         var pro_result = yc_res_pro_parse_result_t(object: nil)
         let pro_status = yc_res_pro_parse(pro_filename, withUnsafePointer(to: io_fs_api, { $0 }), &pro_result)
