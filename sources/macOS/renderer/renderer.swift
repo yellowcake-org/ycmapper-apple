@@ -19,21 +19,24 @@ public class BitmapRenderer: ObservableObject {
     
     private var textures: [UUID : Texture] = .init()
     private class Texture {
-        var uuid: UUID
+        let uuid: UUID
         let image: CGImage
         let shift: CGPoint
+       
         var rect: CGRect
+        var order: yc_vid_texture_order_t
         var isVisible: Bool
         
         deinit {
             debugPrint("deinit TEXTURE")
         }
         
-        init(uuid: UUID, image: CGImage, shift: CGPoint, rect: CGRect, isVisible: Bool) {
+        init(uuid: UUID, image: CGImage, shift: CGPoint, rect: CGRect, order: yc_vid_texture_order_t, isVisible: Bool) {
             self.uuid = uuid
             self.image = image
             self.shift = shift
             self.rect = rect
+            self.order = order
             self.isVisible = isVisible
         }
     }
@@ -60,9 +63,9 @@ public class BitmapRenderer: ObservableObject {
             lhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
             ==
             rhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        } set_visibility: { texture, visibility, ctx in
+        } set_visibility: { texture, visibility, order, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
-                .update(texture: texture, visibility: visibility) ?? YC_VID_STATUS_CORRUPTED
+                .update(texture: texture, visibility: visibility, order: order) ?? YC_VID_STATUS_CORRUPTED
         } set_coordinates: { texture, coordinates, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .update(texture: texture, coordinates: coordinates) ?? YC_VID_STATUS_CORRUPTED
@@ -74,7 +77,7 @@ public class BitmapRenderer: ObservableObject {
 
 public extension BitmapRenderer {
     func render() {
-        for (_, texture) in self.textures {
+        for (_, texture) in self.textures.sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue }) {
             guard texture.isVisible else { continue }
             
             self.ctx.draw(
@@ -141,6 +144,7 @@ private extension BitmapRenderer {
                 origin: .init(x: 0, y: 0),
                 size: .init(width: CGFloat(data.dimensions.horizontal), height: CGFloat(data.dimensions.vertical))
             ),
+            order: YC_VID_TEXTURE_ORDER_NORMAL,
             isVisible: false
         )
         
@@ -175,12 +179,15 @@ private extension BitmapRenderer {
 private extension BitmapRenderer {
     func update(
         texture: UnsafeMutablePointer<yc_vid_texture_t>?,
-        visibility: yc_vid_texture_visibility_t
+        visibility: yc_vid_texture_visibility_t,
+        order: yc_vid_texture_order_t
     ) -> yc_vid_status_t {
         guard let texture = texture else { return YC_VID_STATUS_INPUT }
-        let uuid = texture.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         
+        let uuid = texture.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         guard self.textures[uuid] != nil else { return YC_VID_STATUS_CORRUPTED }
+        
+        self.textures[uuid]!.order = order
         self.textures[uuid]!.isVisible = visibility == YC_VID_TEXTURE_VISIBILITY_ON
         
         return YC_VID_STATUS_OK
