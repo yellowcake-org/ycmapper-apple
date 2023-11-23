@@ -94,33 +94,4 @@ public struct Fetcher {
         
         return pro_result
     }
-    
-    public func database() -> yc_vid_database_api_t {
-        let result = yc_vid_database_api(
-            context: withUnsafePointer(to: self, { .init(mutating: $0) }),
-            fetch: { type, sprite_idx, result, ctx in
-                guard let result = result
-                else { return YC_VID_STATUS_INPUT }
-                
-                guard let ctx = ctx?.assumingMemoryBound(to: Self.self).pointee
-                else { return YC_VID_STATUS_INPUT }
-                
-                let parsed = ctx.sprite(at: sprite_idx, for: type)
-                result.pointee.frm.sprite = parsed.sprite
-                
-                // TODO: Find proper palette!
-                let pal_status = yc_res_pal_parse(
-                    ctx.root.appending(path: "COLOR.PAL").path,
-                    withUnsafePointer(to: io_fs_api, { $0 }),
-                    &result.pointee.pal
-                )
-                
-                assert(YC_RES_PAL_STATUS_OK == pal_status)
-                
-                return YC_VID_STATUS_OK
-            }
-        )
-        
-        return result
-    }
 }
