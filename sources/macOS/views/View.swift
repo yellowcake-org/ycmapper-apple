@@ -146,6 +146,8 @@ extension ContentView {
                 
                 yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
                 yc_res_map_invalidate(&self.map)
+                
+                self.renderer?.invalidate()
             }
                     
             let renderer = yc_vid_renderer_t(

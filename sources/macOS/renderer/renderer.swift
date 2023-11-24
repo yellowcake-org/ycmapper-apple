@@ -98,12 +98,12 @@ public class BitmapRenderer: ObservableObject {
         }
     }
     
-    private let ctx = CGContext(
+    private var ctx = CGContext(
         data: nil, width: 8000, height: 3600,
         bitsPerComponent: 8, bytesPerRow: 4 * 8000,
         space: CGColorSpaceCreateDeviceRGB(),
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )!
+    )
     
     deinit {
         debugPrint("deinit RENDERER")
@@ -136,33 +136,43 @@ public class BitmapRenderer: ObservableObject {
 
 public extension BitmapRenderer {
     func render() {
+        guard let ctx = self.ctx else { return }
+        
         for (_, texture) in self.textures.sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue }) {
             guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
             
-            self.ctx.draw(
+            ctx.draw(
                 texture.frame.image,
                 in: .init( // CG coords are upside down
                     origin: .init(
                         x: texture.origin.x + texture.frame.shift.x,
-                        y: CGFloat(self.ctx.height) - texture.origin.y + texture.frame.shift.y
+                        y: CGFloat(ctx.height) - texture.origin.y + texture.frame.shift.y
                     ),
                     size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
                 )
             )
         }
         
-        let frame = self.ctx.makeImage()!
+        let frame = ctx.makeImage()!
         
         DispatchQueue.main.async(execute: {
             self.canvas = .init(
                 cgImage: frame,
-                size: .init(width: self.ctx.width, height: self.ctx.height)
+                size: .init(width: ctx.width, height: ctx.height)
             )
         })
     }
+    
+    func invalidate(fully: Bool = false) {
+        if fully { self.canvas = nil }
+        
+        self.ctx = nil
+        self.sprites.removeAll()
+        self.textures.removeAll()
+    }
 }
 
-// MARK: - Lifecycle
+// MARK: - Platform API
 
 private extension BitmapRenderer {
     func initialize(
