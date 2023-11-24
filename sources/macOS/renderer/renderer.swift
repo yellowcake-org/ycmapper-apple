@@ -13,31 +13,76 @@ import Combine
 
 public class BitmapRenderer: ObservableObject {
     public let callbacks: yc_vid_texture_api_t
+    private let fetcher: Fetcher
     
     @Published
     private(set) public var canvas: NSImage? = nil
     
+    
+    private var sprites: [UInt32 : Sprite] = .init()
+    private class Sprite {
+        let id: UInt32
+        
+        let idx: UInt16
+        let type: yc_res_pro_object_type_t
+        
+        let indexes: [[Animation].Index]
+        let animations: [Animation]
+        class Animation {
+            let fps, keyframe_idx: UInt16
+            let frames: [Frame]
+            
+            class Frame {
+                let size: CGSize
+                let shift: CGPoint
+                
+                let image: CGImage
+                
+                init(size: CGSize, shift: CGPoint, image: CGImage?) {
+                    self.size = size
+                    self.shift = shift
+                    self.image = image!
+                }
+            }
+            
+            init(fps: UInt16, keyframe_idx: UInt16, frames: [Frame]) {
+                self.fps = fps
+                self.keyframe_idx = keyframe_idx
+                self.frames = frames
+            }
+        }
+        
+        init(id: UInt32, idx: UInt16, type: yc_res_pro_object_type_t, indexes: [[Animation].Index], animations: [Animation]) {
+            self.id = id
+            self.idx = idx
+            self.type = type
+            self.indexes = indexes
+            self.animations = animations
+        }
+    }
+    
     private var textures: [UUID : Texture] = .init()
     private class Texture {
         let uuid: UUID
-        let image: CGImage
-        let shift: CGPoint
-       
-        var rect: CGRect
+        let frame: Sprite.Animation.Frame
+        
+        var origin: CGPoint
         var order: yc_vid_texture_order_t
-        var isVisible: Bool
+        var visibility: yc_vid_texture_visibility_t
         
         deinit {
             debugPrint("deinit TEXTURE")
         }
         
-        init(uuid: UUID, image: CGImage, shift: CGPoint, rect: CGRect, order: yc_vid_texture_order_t, isVisible: Bool) {
+        init(
+            uuid: UUID, frame: Sprite.Animation.Frame, origin: CGPoint,
+            order: yc_vid_texture_order_t, visibility: yc_vid_texture_visibility_t
+        ) {
             self.uuid = uuid
-            self.image = image
-            self.shift = shift
-            self.rect = rect
+            self.frame = frame
+            self.origin = origin
             self.order = order
-            self.isVisible = isVisible
+            self.visibility = visibility
         }
     }
     
@@ -52,10 +97,12 @@ public class BitmapRenderer: ObservableObject {
         debugPrint("deinit RENDERER")
     }
     
-    public init() {
-        self.callbacks = yc_vid_texture_api_t { data, destination, ctx in
-            ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
-                .initialize(data: data, destination: destination) ?? YC_VID_STATUS_CORRUPTED
+    public init(fetcher: Fetcher) {
+        self.fetcher = fetcher
+        self.callbacks = yc_vid_texture_api_t { type, sprite_idx, orientation, destination, ctx  in
+            ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
+                type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination
+            ) ?? YC_VID_STATUS_CORRUPTED
         } invalidate: { texture, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .invalidate(texture: texture) ?? YC_VID_STATUS_CORRUPTED
@@ -78,13 +125,16 @@ public class BitmapRenderer: ObservableObject {
 public extension BitmapRenderer {
     func render() {
         for (_, texture) in self.textures.sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue }) {
-            guard texture.isVisible else { continue }
+            guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
             
             self.ctx.draw(
-                texture.image,
+                texture.frame.image,
                 in: .init( // CG coords are upside down
-                    origin: .init(x: texture.rect.origin.x, y: CGFloat(self.ctx.height) - texture.rect.origin.y),
-                    size: .init(width: texture.rect.width, height: texture.rect.height)
+                    origin: .init(
+                        x: texture.origin.x + texture.frame.shift.x,
+                        y: CGFloat(self.ctx.height) - texture.origin.y + texture.frame.shift.y
+                    ),
+                    size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
                 )
             )
         }
@@ -104,58 +154,137 @@ public extension BitmapRenderer {
 
 private extension BitmapRenderer {
     func initialize(
-        data: UnsafePointer<yc_vid_texture_data_t>?,
-        destination: UnsafeMutablePointer<yc_vid_texture_t>?
+        type: yc_res_pro_object_type_t,
+        sprite_idx: UInt16,
+        orientation: yc_res_math_orientation_t,
+        destination: UnsafeMutablePointer<yc_vid_texture_set_t>?
     ) -> yc_vid_status_t {
-        guard let data = data?.pointee else { return YC_VID_STATUS_INPUT }
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
-                
-        let ref = CGContext(
-            data: nil,
-            width: Int(data.dimensions.horizontal),
-            height: Int(data.dimensions.vertical),
-            bitsPerComponent: 8, // UInt8
-            bytesPerRow: Int(data.dimensions.horizontal) * 4, // count(RGBA) == 4
-            space: .init(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        )!
         
-        for v_idx in 0..<Int(data.dimensions.vertical) {
-            for h_idx in 0..<Int(data.dimensions.horizontal) {
-                let rows = v_idx * (Int(data.dimensions.horizontal) * 4)
-                var color = data.pixels.advanced(by: h_idx + v_idx * Int(data.dimensions.horizontal)).pointee
+        let fid = yc_res_pro_fid_from(sprite_idx, type)
+        let type_a = yc_res_pro_object_type_from_fid(fid)
+        let sprite_idx_a = yc_res_pro_index_from_sprite_id(fid)
+        
+        assert(type_a == type && sprite_idx_a == sprite_idx)
+        
+        guard let sprite = self.sprites[fid] else {
+            // TODO: Find proper palette!
+            var palette = yc_res_pal_parse_result_t()
+            let status = yc_res_pal_parse(
+                self.fetcher.root.appending(path: "COLOR.PAL").path,
+                withUnsafePointer(to: io_fs_api, { $0 }),
+                &palette
+            )
+            
+            assert(YC_RES_PAL_STATUS_OK == status)
+            defer { palette.colors.deallocate() }
+            
+            let parsed = self.fetcher.sprite(at: sprite_idx, for: type)
+            defer { yc_res_frm_sprite_invalidate(parsed.sprite); parsed.sprite.deallocate() }
+            
+            let animations: [Sprite.Animation] = Array(
+                UnsafeBufferPointer(
+                    start: parsed.sprite.pointee.animations,
+                    count: parsed.sprite.pointee.count
+                )
+            ).map({ animation in
+                let frames: [Sprite.Animation.Frame] = Array(
+                    UnsafeBufferPointer(start: animation.frames, count: animation.count)
+                ).map({ texture in
+                    let ref = CGContext(
+                        data: nil,
+                        width: Int(texture.dimensions.horizontal),
+                        height: Int(texture.dimensions.vertical),
+                        bitsPerComponent: 8, // UInt8
+                        bytesPerRow: Int(texture.dimensions.horizontal) * 4, // count(RGBA) == 4
+                        space: .init(name: CGColorSpace.sRGB)!,
+                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                    )!
+                    
+                    for v_idx in 0..<Int(texture.dimensions.vertical) {
+                        for h_idx in 0..<Int(texture.dimensions.horizontal) {
+                            let rows = v_idx * (Int(texture.dimensions.horizontal) * 4)
+                            
+                            let color_idx = texture.pixels.advanced(by: h_idx + v_idx * Int(texture.dimensions.horizontal)).pointee
+                            var color = palette.colors.advanced(by: Int(color_idx)).pointee
+                            let color_is_transparent = yc_res_pal_color_is_transparent(&color)
+
+                            ref.data?.assumingMemoryBound(to: UInt8.self)
+                                .advanced(by: (h_idx * 4 + 0) + rows).pointee = color.r
+                            ref.data?.assumingMemoryBound(to: UInt8.self)
+                                .advanced(by: (h_idx * 4 + 1) + rows).pointee = color.g
+                            ref.data?.assumingMemoryBound(to: UInt8.self)
+                                .advanced(by: (h_idx * 4 + 2) + rows).pointee = color.b
+                            ref.data?.assumingMemoryBound(to: UInt8.self)
+                                .advanced(by: (h_idx * 4 + 3) + rows).pointee = color_is_transparent ? .min : .max
+                        }
+                    }
+                    
+                    return .init(
+                        size: .init(
+                            width: CGFloat(texture.dimensions.horizontal),
+                            height: CGFloat(texture.dimensions.vertical)
+                        ),
+                        shift: .init(
+                            x: CGFloat(texture.shift.horizontal + animation.shift.horizontal),
+                            y: CGFloat(texture.shift.vertical + animation.shift.vertical)
+                        ),
+                        image: ref.makeImage()!
+                    )
+                })
                 
-                ref.data?.assumingMemoryBound(to: UInt8.self)
-                    .advanced(by: (h_idx * 4 + 0) + rows).pointee = color.r
-                ref.data?.assumingMemoryBound(to: UInt8.self)
-                    .advanced(by: (h_idx * 4 + 1) + rows).pointee = color.g
-                ref.data?.assumingMemoryBound(to: UInt8.self)
-                    .advanced(by: (h_idx * 4 + 2) + rows).pointee = color.b
-                ref.data?.assumingMemoryBound(to: UInt8.self)
-                    .advanced(by: (h_idx * 4 + 3) + rows).pointee = yc_res_pal_color_is_transparent(&color) ? .min : .max
-            }
+                return .init(fps: animation.fps, keyframe_idx: animation.keyframe_idx, frames: frames)
+            })
+            
+            let sprite: Sprite = .init(
+                id: fid,
+                idx: sprite_idx,
+                type: type,
+                indexes: [
+                    parsed.sprite.pointee.orientations.0,
+                    parsed.sprite.pointee.orientations.1,
+                    parsed.sprite.pointee.orientations.2,
+                    parsed.sprite.pointee.orientations.3,
+                    parsed.sprite.pointee.orientations.4,
+                    parsed.sprite.pointee.orientations.5,
+                ],
+                animations: animations
+            )
+            
+            self.sprites[fid] = sprite
+            
+            return self.initialize(type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination)
         }
-         
-        let texture: Texture = .init(
-            uuid: .init(),
-            image: ref.makeImage()!,
-            shift: .init(x: Int(data.shift.horizontal), y: Int(data.shift.vertical)),
-            rect: .init(
-                origin: .init(x: 0, y: 0),
-                size: .init(width: CGFloat(data.dimensions.horizontal), height: CGFloat(data.dimensions.vertical))
-            ),
-            order: YC_VID_TEXTURE_ORDER_NORMAL,
-            isVisible: false
-        )
         
-        self.textures[texture.uuid] = texture
+        let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
         
-        // dealloc in invalidation block
-        destination.pointee.handle = .allocate(byteCount: MemoryLayout<UUID>.size, alignment: 0)
-        destination.pointee.handle.copyMemory(
-            from: withUnsafePointer(to: texture.uuid, { $0 }),
-            byteCount: MemoryLayout<UUID>.size
-        )
+        destination.pointee.fps = animation.fps
+        destination.pointee.keyframe_idx = animation.keyframe_idx
+        
+        destination.pointee.count = animation.frames.count
+        destination.pointee.textures = .allocate(capacity: animation.frames.count) // will freed by the view
+        
+        for (index, frame) in animation.frames.enumerated() {
+            let texture: Texture = .init(
+                uuid: .init(),
+                frame: frame,
+                origin: .zero,
+                order: YC_VID_TEXTURE_ORDER_NORMAL,
+                visibility: YC_VID_TEXTURE_VISIBILITY_OFF
+            )
+            
+            self.textures[texture.uuid] = texture
+            
+            destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
+                byteCount: MemoryLayout<UUID>.size,
+                alignment: 0
+            )
+            
+            destination.pointee.textures.advanced(by: index).pointee.handle.copyMemory(
+                from: withUnsafePointer(to: texture.uuid, { $0 }),
+                byteCount: MemoryLayout<UUID>.size
+            )
+        }
         
         return YC_VID_STATUS_OK
     }
@@ -188,7 +317,7 @@ private extension BitmapRenderer {
         guard self.textures[uuid] != nil else { return YC_VID_STATUS_CORRUPTED }
         
         self.textures[uuid]!.order = order
-        self.textures[uuid]!.isVisible = visibility == YC_VID_TEXTURE_VISIBILITY_ON
+        self.textures[uuid]!.visibility = visibility
         
         return YC_VID_STATUS_OK
     }
@@ -203,8 +332,8 @@ private extension BitmapRenderer {
         guard self.textures[uuid] != nil
         else { return YC_VID_STATUS_CORRUPTED }
         
-        self.textures[uuid]?.rect.origin.x = CGFloat(coordinates.x)
-        self.textures[uuid]?.rect.origin.y = CGFloat(coordinates.y)
+        self.textures[uuid]?.origin.x = CGFloat(coordinates.x)
+        self.textures[uuid]?.origin.y = CGFloat(coordinates.y)
         
         return YC_VID_STATUS_OK
     }

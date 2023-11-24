@@ -24,8 +24,8 @@ struct ContentView: View {
     @State
     private var fetcher: Fetcher?
     
-    @StateObject
-    private var renderer: BitmapRenderer = .init()
+    @State
+    private var renderer: BitmapRenderer?
     
     var body: some View {
         if self.fetcher == nil {
@@ -51,7 +51,7 @@ struct ContentView: View {
         if self.isProcessing {
             ContentUnavailableView(label: { Text("Loading...") })
         } else {
-            if let canvas = self.renderer.canvas {
+            if let canvas = self.renderer?.canvas {
                 GeometryReader(content: { proxy in
                     ScrollView([.horizontal, .vertical], content: {
                         Image(nsImage: canvas)
@@ -78,6 +78,7 @@ extension ContentView {
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
+        self.renderer = .init(fetcher: self.fetcher!)
     }
 }
 
@@ -136,11 +137,11 @@ extension ContentView {
             defer {
                 defer { self.isProcessing = false }
                 
-                self.renderer.render()
+                self.renderer!.render()
                 
                 let renderer = yc_vid_renderer_t(
-                    context: withUnsafePointer(to: self.renderer, { .init(mutating: $0) }),
-                    texture: withUnsafePointer(to: self.renderer.callbacks, { $0 })
+                    context: withUnsafePointer(to: self.renderer!, { .init(mutating: $0) }),
+                    texture: withUnsafePointer(to: self.renderer!.callbacks, { $0 })
                 )
                 
                 yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
@@ -148,42 +149,16 @@ extension ContentView {
             }
             
             guard let fetcher = self.fetcher else { return }
-            
-            var db_api = yc_vid_database_api(
-                context: withUnsafePointer(to: fetcher, { .init(mutating: $0) }),
-                fetch: { type, sprite_idx, result, ctx in
-                    guard let result = result
-                    else { return YC_VID_STATUS_CORRUPTED }
-                    
-                    guard let ctx = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                    else { return YC_VID_STATUS_CORRUPTED }
-                    
-                    let parsed = ctx.sprite(at: sprite_idx, for: type)
-                    result.pointee.frm.sprite = parsed.sprite
-                    
-                    // TODO: Find proper palette!
-                    let pal_status = yc_res_pal_parse(
-                        ctx.root.appending(path: "COLOR.PAL").path,
-                        withUnsafePointer(to: io_fs_api, { $0 }),
-                        &result.pointee.pal
-                    )
-                    
-                    assert(YC_RES_PAL_STATUS_OK == pal_status)
-                    
-                    return YC_VID_STATUS_OK
-                }
-            )
         
             let renderer = yc_vid_renderer_t(
-                context: withUnsafePointer(to: self.renderer, { .init(mutating: $0) }),
-                texture: withUnsafePointer(to: self.renderer.callbacks, { $0 })
+                context: withUnsafePointer(to: self.renderer!, { .init(mutating: $0) }),
+                texture: withUnsafePointer(to: self.renderer!.callbacks, { $0 })
             )
             
             let status = yc_vid_view_initialize(
                 &self.view,
                 self.map.levels.0,
-                withUnsafePointer(to: renderer, { $0 }),
-                &db_api
+                withUnsafePointer(to: renderer, { $0 })
             )
             
             assert(status == YC_VID_STATUS_OK)
