@@ -147,9 +147,7 @@ extension ContentView {
                 yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
                 yc_res_map_invalidate(&self.map)
             }
-            
-            guard let fetcher = self.fetcher else { return }
-        
+                    
             let renderer = yc_vid_renderer_t(
                 context: withUnsafePointer(to: self.renderer!, { .init(mutating: $0) }),
                 texture: withUnsafePointer(to: self.renderer!.callbacks, { $0 })
