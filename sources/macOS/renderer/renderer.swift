@@ -64,10 +64,10 @@ public extension BitmapRenderer {
             
             ctx.draw(
                 texture.frame.image,
-                in: .init( // CG coords are upside down
+                in: .init(
                     origin: .init(
                         x: texture.origin.x + texture.frame.shift.x,
-                        y: CGFloat(ctx.height) - texture.origin.y + texture.frame.shift.y
+                        y: CGFloat(ctx.height) - texture.origin.y + texture.frame.shift.y // CG coords are upside down
                     ),
                     size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
                 )
@@ -101,13 +101,8 @@ private extension BitmapRenderer {
         destination: UnsafeMutablePointer<yc_vid_texture_set_t>?
     ) -> yc_vid_status_t {
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
-        
+
         let fid = yc_res_pro_fid_from(sprite_idx, type)
-        let type_a = yc_res_pro_object_type_from_fid(fid)
-        let sprite_idx_a = yc_res_pro_index_from_sprite_id(fid)
-        
-        assert(type_a == type && sprite_idx_a == sprite_idx)
-        
         guard let sprite = self.sprites[fid] else {
             // TODO: Find proper palette!
             var palette = yc_res_pal_parse_result_t()
@@ -156,7 +151,7 @@ private extension BitmapRenderer {
         destination.pointee.keyframe_idx = animation.keyframe_idx
         
         destination.pointee.count = animation.frames.count
-        destination.pointee.textures = .allocate(capacity: animation.frames.count) // will freed by the view
+        destination.pointee.textures = .allocate(capacity: animation.frames.count) // will be freed by the view
         
         for (index, frame) in animation.frames.enumerated() {
             let texture: Texture = .init(

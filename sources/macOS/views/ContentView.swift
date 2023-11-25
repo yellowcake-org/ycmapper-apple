@@ -95,28 +95,30 @@ extension ContentView {
         else { return }
                 
         var fetchers = yc_res_map_parse_db_api_t(
-            context: withUnsafePointer(to: fetcher, { $0 })) { pid, ctx in
+            context: withUnsafePointer(to: fetcher, { $0 })) { pid, result, ctx in
                 guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_PRO_OBJECT_ITEM_TYPE_KEY }
+                else { return YC_RES_MAP_STATUS_CORR }
                 
-                let result = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
-                let type = result.object.pointee.data.item.pointee.type
+                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
+                let type = parsed.object.pointee.data.item.pointee.type
                 
-                yc_res_pro_object_invalidate(result.object)
-                result.object.deallocate()
+                yc_res_pro_object_invalidate(parsed.object)
+                parsed.object.deallocate()
                 
-                return type
-            } scenery_type_from_pid: { pid, ctx in
+                result?.pointee = type
+                return YC_RES_MAP_STATUS_OK
+            } scenery_type_from_pid: { pid, result, ctx in
                 guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_PRO_OBJECT_SCENERY_TYPE_GENERIC }
+                else { return YC_RES_MAP_STATUS_CORR }
                 
-                let result = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
-                let type = result.object.pointee.data.scenery.pointee.type
+                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
+                let type = parsed.object.pointee.data.scenery.pointee.type
                 
-                yc_res_pro_object_invalidate(result.object)
-                result.object.deallocate()
+                yc_res_pro_object_invalidate(parsed.object)
+                parsed.object.deallocate()
                 
-                return type
+                result?.pointee = type
+                return YC_RES_MAP_STATUS_OK
             }
         
         
@@ -135,19 +137,10 @@ extension ContentView {
         
         DispatchQueue.global(qos: .userInitiated).async(execute: {
             defer {
-                defer { self.isProcessing = false }
-                
                 self.renderer!.render()
+                self.cleanup()
                 
-                let renderer = yc_vid_renderer_t(
-                    context: withUnsafePointer(to: self.renderer!, { .init(mutating: $0) }),
-                    texture: withUnsafePointer(to: self.renderer!.callbacks, { $0 })
-                )
-                
-                yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
-                yc_res_map_invalidate(&self.map)
-                
-                self.renderer?.invalidate()
+                self.isProcessing = false
             }
                     
             let renderer = yc_vid_renderer_t(
@@ -172,5 +165,19 @@ extension ContentView {
             
             assert(YC_VID_STATUS_OK == tick_status)
         })
+    }
+}
+
+extension ContentView {
+    func cleanup() {
+        let renderer = yc_vid_renderer_t(
+            context: withUnsafePointer(to: self.renderer!, { .init(mutating: $0) }),
+            texture: withUnsafePointer(to: self.renderer!.callbacks, { $0 })
+        )
+        
+        yc_vid_view_invalidate(&self.view, withUnsafePointer(to: renderer, { $0 }) )
+        yc_res_map_invalidate(&self.map)
+        
+        self.renderer?.invalidate()
     }
 }

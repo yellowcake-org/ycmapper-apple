@@ -39,12 +39,7 @@ public class Fetcher {
         
         assert(lst_status == YC_RES_LST_STATUS_OK)
         
-        let entries = Array(
-            UnsafeBufferPointer(
-                start: lst_result.pointers,
-                count: lst_result.count
-            )
-        )
+        let entries = Array(UnsafeBufferPointer(start: lst_result.pointers, count: lst_result.count))
         
         let frm_filename = self.root
             .appending(path: subpath)
@@ -84,12 +79,7 @@ public class Fetcher {
         assert(lst_status == YC_RES_LST_STATUS_OK)
         
         let index = yc_res_pro_index_from_object_id(pid) - 1
-        let entries = Array(
-            UnsafeBufferPointer(
-                start: lst_result.pointers,
-                count: lst_result.count
-            )
-        )
+        let entries = Array(UnsafeBufferPointer(start: lst_result.pointers, count: lst_result.count))
         
         let pro_filename = self.root
             .appending(path: subpath)

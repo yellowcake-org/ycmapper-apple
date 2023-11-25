@@ -13,7 +13,7 @@
 		B44A98192B1192430025115E /* sprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A98182B1192430025115E /* sprite.swift */; };
 		B44A981B2B11927D0025115E /* texture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A981A2B11927D0025115E /* texture.swift */; };
 		B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302A2B03EC5900DBB05B /* ycmapper.swift */; };
-		B49D302D2B03EC5900DBB05B /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302B2B03EC5900DBB05B /* View.swift */; };
+		B49D302D2B03EC5900DBB05B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302B2B03EC5900DBB05B /* ContentView.swift */; };
 		B49D325D2B03EF4100DBB05B /* libycenv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31B02B03ECDF00DBB05B /* libycenv.a */; };
 		B49D325E2B03EF4100DBB05B /* libycres.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31BE2B03ECDF00DBB05B /* libycres.a */; };
 		B49D325F2B03EF4100DBB05B /* libycvid.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31C22B03ECDF00DBB05B /* libycvid.a */; };
@@ -206,7 +206,7 @@
 		B49D300B2B03EB9900DBB05B /* ycmapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ycmapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B49D30292B03EC5900DBB05B /* ycmapper.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = ycmapper.entitlements; sourceTree = "<group>"; };
 		B49D302A2B03EC5900DBB05B /* ycmapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ycmapper.swift; sourceTree = "<group>"; };
-		B49D302B2B03EC5900DBB05B /* View.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
+		B49D302B2B03EC5900DBB05B /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = libycvid.xcodeproj; sourceTree = "<group>"; };
 		B49D32612B03F29D00DBB05B /* imports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = imports.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -258,7 +258,7 @@
 		B406ECAB2B0EA82D0008C796 /* views */ = {
 			isa = PBXGroup;
 			children = (
-				B49D302B2B03EC5900DBB05B /* View.swift */,
+				B49D302B2B03EC5900DBB05B /* ContentView.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -594,7 +594,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B49D302D2B03EC5900DBB05B /* View.swift in Sources */,
+				B49D302D2B03EC5900DBB05B /* ContentView.swift in Sources */,
 				B44A98192B1192430025115E /* sprite.swift in Sources */,
 				B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */,
 				B406ECAA2B0EA42B0008C796 /* io.swift in Sources */,
