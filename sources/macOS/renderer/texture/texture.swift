@@ -10,7 +10,7 @@ import Foundation
 extension BitmapRenderer {
     class Texture {
         let uuid: UUID
-        let frame: Sprite.Animation.Frame
+        let frame: Cache.Sprite.Animation.Frame
         
         var origin: CGPoint
         var order: yc_vid_texture_order_t
@@ -19,7 +19,7 @@ extension BitmapRenderer {
         deinit { debugPrint("deinit TEXTURE") }
         
         init(
-            uuid: UUID, frame: Sprite.Animation.Frame, origin: CGPoint,
+            uuid: UUID, frame: Cache.Sprite.Animation.Frame, origin: CGPoint,
             order: yc_vid_texture_order_t, visibility: yc_vid_texture_visibility_t
         ) {
             self.uuid = uuid

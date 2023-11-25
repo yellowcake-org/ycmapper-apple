@@ -8,7 +8,7 @@
 import Foundation
 import CoreGraphics
 
-extension BitmapRenderer {
+extension Cache {
     class Sprite {
         let id: UInt32
         

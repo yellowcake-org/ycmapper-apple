@@ -11,15 +11,12 @@ import AppKit
 import SwiftUI
 import Combine
 
-public class BitmapRenderer: ObservableObject {
+class BitmapRenderer: ObservableObject {
     public let callbacks: yc_vid_texture_api_t
-    private let fetcher: Fetcher
+    public let cache: Cache
     
     @Published
     private(set) public var canvas: NSImage? = nil
-    
-    private var palette: yc_res_pal_parse_result_t = .init()
-    private var sprites: [UInt32 : Sprite] = .init()
     private var textures: [UUID : Texture] = .init()
     
     private var ctx = CGContext(
@@ -31,20 +28,10 @@ public class BitmapRenderer: ObservableObject {
     
     deinit {
         debugPrint("deinit RENDERER")
-        self.palette.colors.deallocate()
     }
     
-    public init(fetcher: Fetcher) {
-        self.fetcher = fetcher
-        
-        let status = yc_res_pal_parse(
-            self.fetcher.root.appending(path: "COLOR.PAL").path,
-            withUnsafePointer(to: io_fs_api, { $0 }),
-            &self.palette
-        )
-        
-        assert(YC_RES_PAL_STATUS_OK == status)
-        
+    init(cache: Cache) {
+        self.cache = cache
         self.callbacks = yc_vid_texture_api_t { type, sprite_idx, orientation, destination, ctx  in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
                 type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination
@@ -68,7 +55,7 @@ public class BitmapRenderer: ObservableObject {
 
 // MARK: - Usage
 
-public extension BitmapRenderer {
+extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
         
@@ -98,9 +85,9 @@ public extension BitmapRenderer {
     func invalidate(fully: Bool = false) {
         if fully { self.canvas = nil }
         
-        self.ctx = nil
-        self.sprites.removeAll()
+        self.cache.invalidate()
         self.textures.removeAll()
+        self.ctx = nil
     }
 }
 
@@ -114,39 +101,8 @@ private extension BitmapRenderer {
         destination: UnsafeMutablePointer<yc_vid_texture_set_t>?
     ) -> yc_vid_status_t {
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
-
-        let fid = yc_res_pro_fid_from(sprite_idx, type)
-        guard let sprite = self.sprites[fid] else {
-            let parsed = self.fetcher.sprite(at: sprite_idx, for: type)
-            defer { yc_res_frm_sprite_invalidate(parsed.0.sprite); parsed.0.sprite.deallocate() }
-            
-            let animations: [Sprite.Animation] = Array(
-                UnsafeBufferPointer(
-                    start: parsed.0.sprite.pointee.animations,
-                    count: parsed.0.sprite.pointee.count
-                )
-            ).map({ .init(raw: $0, palette: palette) })
-            
-            let sprite: Sprite = .init(
-                id: fid,
-                idx: sprite_idx,
-                type: type,
-                indexes: [
-                    parsed.0.sprite.pointee.orientations.0,
-                    parsed.0.sprite.pointee.orientations.1,
-                    parsed.0.sprite.pointee.orientations.2,
-                    parsed.0.sprite.pointee.orientations.3,
-                    parsed.0.sprite.pointee.orientations.4,
-                    parsed.0.sprite.pointee.orientations.5,
-                ],
-                animations: animations
-            )
-            
-            self.sprites[fid] = sprite
-            
-            return self.initialize(type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination)
-        }
         
+        let sprite = self.cache.fetch(for: yc_res_pro_fid_from(sprite_idx, type))
         let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
         
         destination.pointee.fps = animation.fps

@@ -10,6 +10,7 @@
 		B406ECAA2B0EA42B0008C796 /* io.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECA92B0EA42B0008C796 /* io.swift */; };
 		B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECAD2B0EAE870008C796 /* fetchers.swift */; };
 		B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECB02B0ED6AB0008C796 /* renderer.swift */; };
+		B44715C32B12B983003E27C4 /* cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44715C22B12B983003E27C4 /* cache.swift */; };
 		B44A98192B1192430025115E /* sprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A98182B1192430025115E /* sprite.swift */; };
 		B44A981B2B11927D0025115E /* texture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A981A2B11927D0025115E /* texture.swift */; };
 		B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302A2B03EC5900DBB05B /* ycmapper.swift */; };
@@ -201,6 +202,7 @@
 		B406ECA92B0EA42B0008C796 /* io.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = io.swift; sourceTree = "<group>"; };
 		B406ECAD2B0EAE870008C796 /* fetchers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fetchers.swift; sourceTree = "<group>"; };
 		B406ECB02B0ED6AB0008C796 /* renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = renderer.swift; sourceTree = "<group>"; };
+		B44715C22B12B983003E27C4 /* cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cache.swift; sourceTree = "<group>"; };
 		B44A98182B1192430025115E /* sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sprite.swift; sourceTree = "<group>"; };
 		B44A981A2B11927D0025115E /* texture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = texture.swift; sourceTree = "<group>"; };
 		B49D300B2B03EB9900DBB05B /* ycmapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ycmapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -240,9 +242,10 @@
 				B49D302A2B03EC5900DBB05B /* ycmapper.swift */,
 				B406EC902B0EA2970008C796 /* config */,
 				B406ECAB2B0EA82D0008C796 /* views */,
+				B44715AB2B12B972003E27C4 /* cache */,
+				B406ECAC2B0EAE6D0008C796 /* fetchers */,
 				B406ECAF2B0ED68C0008C796 /* renderer */,
 				B406ECA82B0EA41D0008C796 /* platform */,
-				B406ECAC2B0EAE6D0008C796 /* fetchers */,
 			);
 			path = macOS;
 			sourceTree = "<group>";
@@ -275,10 +278,18 @@
 			isa = PBXGroup;
 			children = (
 				B44A98172B1192390025115E /* texture */,
-				B44A98002B1192320025115E /* sprite */,
 				B406ECB02B0ED6AB0008C796 /* renderer.swift */,
 			);
 			path = renderer;
+			sourceTree = "<group>";
+		};
+		B44715AB2B12B972003E27C4 /* cache */ = {
+			isa = PBXGroup;
+			children = (
+				B44A98002B1192320025115E /* sprite */,
+				B44715C22B12B983003E27C4 /* cache.swift */,
+			);
+			path = cache;
 			sourceTree = "<group>";
 		};
 		B44A98002B1192320025115E /* sprite */ = {
@@ -596,6 +607,7 @@
 			files = (
 				B49D302D2B03EC5900DBB05B /* ContentView.swift in Sources */,
 				B44A98192B1192430025115E /* sprite.swift in Sources */,
+				B44715C32B12B983003E27C4 /* cache.swift in Sources */,
 				B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */,
 				B406ECAA2B0EA42B0008C796 /* io.swift in Sources */,
 				B44A981B2B11927D0025115E /* texture.swift in Sources */,
