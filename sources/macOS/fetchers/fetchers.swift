@@ -20,7 +20,10 @@ public class Fetcher {
         self.root = root
     }
     
-    public func sprite(at index: UInt16, for type: yc_res_pro_object_type_t) -> yc_res_frm_parse_result_t {
+    public func sprite(
+        at index: UInt16,
+        for type: yc_res_pro_object_type_t
+    ) -> (yc_res_frm_parse_result_t, yc_res_pal_parse_result_t?) {
         let subpath = switch type {
         case YC_RES_PRO_OBJECT_TYPE_TILE: "ART/TILES/"
         default: fatalError()
@@ -53,7 +56,14 @@ public class Fetcher {
         
         assert(frm_status == YC_RES_FRM_STATUS_OK)
         
-        return frm_result
+        let pal_filename = URL(string: frm_filename)!
+            .deletingLastPathComponent()
+            .appendingPathExtension("PAL").path
+        
+        var palette = yc_res_pal_parse_result_t()
+        let status = yc_res_pal_parse(pal_filename, withUnsafePointer(to: io_fs_api, { $0 }), &palette)
+        
+        return (frm_result, status == YC_RES_PAL_STATUS_OK ? palette : nil)
     }
     
     public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) -> yc_res_pro_parse_result_t {

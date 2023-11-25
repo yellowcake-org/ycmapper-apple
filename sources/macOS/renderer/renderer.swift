@@ -18,6 +18,7 @@ public class BitmapRenderer: ObservableObject {
     @Published
     private(set) public var canvas: NSImage? = nil
     
+    private var palette: yc_res_pal_parse_result_t = .init()
     private var sprites: [UInt32 : Sprite] = .init()
     private var textures: [UUID : Texture] = .init()
     
@@ -28,10 +29,22 @@ public class BitmapRenderer: ObservableObject {
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )
     
-    deinit { debugPrint("deinit RENDERER") }
+    deinit {
+        debugPrint("deinit RENDERER")
+        self.palette.colors.deallocate()
+    }
     
     public init(fetcher: Fetcher) {
         self.fetcher = fetcher
+        
+        let status = yc_res_pal_parse(
+            self.fetcher.root.appending(path: "COLOR.PAL").path,
+            withUnsafePointer(to: io_fs_api, { $0 }),
+            &self.palette
+        )
+        
+        assert(YC_RES_PAL_STATUS_OK == status)
+        
         self.callbacks = yc_vid_texture_api_t { type, sprite_idx, orientation, destination, ctx  in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
                 type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination
@@ -104,24 +117,13 @@ private extension BitmapRenderer {
 
         let fid = yc_res_pro_fid_from(sprite_idx, type)
         guard let sprite = self.sprites[fid] else {
-            // TODO: Find proper palette!
-            var palette = yc_res_pal_parse_result_t()
-            let status = yc_res_pal_parse(
-                self.fetcher.root.appending(path: "COLOR.PAL").path,
-                withUnsafePointer(to: io_fs_api, { $0 }),
-                &palette
-            )
-            
-            assert(YC_RES_PAL_STATUS_OK == status)
-            defer { palette.colors.deallocate() }
-            
             let parsed = self.fetcher.sprite(at: sprite_idx, for: type)
-            defer { yc_res_frm_sprite_invalidate(parsed.sprite); parsed.sprite.deallocate() }
+            defer { yc_res_frm_sprite_invalidate(parsed.0.sprite); parsed.0.sprite.deallocate() }
             
             let animations: [Sprite.Animation] = Array(
                 UnsafeBufferPointer(
-                    start: parsed.sprite.pointee.animations,
-                    count: parsed.sprite.pointee.count
+                    start: parsed.0.sprite.pointee.animations,
+                    count: parsed.0.sprite.pointee.count
                 )
             ).map({ .init(raw: $0, palette: palette) })
             
@@ -130,12 +132,12 @@ private extension BitmapRenderer {
                 idx: sprite_idx,
                 type: type,
                 indexes: [
-                    parsed.sprite.pointee.orientations.0,
-                    parsed.sprite.pointee.orientations.1,
-                    parsed.sprite.pointee.orientations.2,
-                    parsed.sprite.pointee.orientations.3,
-                    parsed.sprite.pointee.orientations.4,
-                    parsed.sprite.pointee.orientations.5,
+                    parsed.0.sprite.pointee.orientations.0,
+                    parsed.0.sprite.pointee.orientations.1,
+                    parsed.0.sprite.pointee.orientations.2,
+                    parsed.0.sprite.pointee.orientations.3,
+                    parsed.0.sprite.pointee.orientations.4,
+                    parsed.0.sprite.pointee.orientations.5,
                 ],
                 animations: animations
             )
