@@ -96,7 +96,30 @@ public class Fetcher {
                 )
                 
                 if yc_rec_pro_is_sprite_split(fid) {
-                    fatalError()
+                    var split: [yc_res_frm_parse_result_t] = .init(
+                        repeating: yc_res_frm_parse_result_t(), count: Int(YC_RES_MATH_ORIENTATION_COUNT.rawValue)
+                    )
+                    
+                    for idx in 0..<YC_RES_MATH_ORIENTATION_COUNT.rawValue {
+                        let frm_complete_path = frm_filename.appendingPathExtension("FR\(idx)").path
+                        
+                        let frm_status = yc_res_frm_parse(
+                            frm_complete_path, withUnsafePointer(to: io_fs_api, { $0 }), &split[Int(idx)]
+                        )
+                        
+                        assert(YC_RES_FRM_STATUS_OK == frm_status)
+                    }
+                    
+                    var ptrs = split.map({ $0.sprite })
+                    let merge_status = yc_res_frm_merge(
+                        ptrs.withUnsafeMutableBufferPointer({ $0.baseAddress }),
+                        Int(YC_RES_MATH_ORIENTATION_COUNT.rawValue)
+                    )
+                    
+                    assert(YC_RES_FRM_STATUS_OK == merge_status)
+                    assert(ptrs.count == 1)
+                    
+                    frm_result.sprite = ptrs.first!
                 } else {
                     let frm_complete_path = frm_filename.appendingPathExtension("FRM").path
                     let frm_status = yc_res_frm_parse(frm_complete_path, withUnsafePointer(to: io_fs_api, { $0 }), &frm_result)

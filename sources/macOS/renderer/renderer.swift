@@ -76,6 +76,15 @@ extension BitmapRenderer {
         })
         let roofs = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_ROOF })
         
+        func compare(lhs: Texture, rhs: Texture) -> Bool {
+            if ((lhs.indexes.x == rhs.indexes.x) && (lhs.indexes.y == rhs.indexes.y)) {
+                return lhs.order.rawValue < rhs.order.rawValue
+            } else {
+                if (lhs.indexes.y == rhs.indexes.y) { return lhs.indexes.x > rhs.indexes.x }
+                else { return lhs.indexes.y < rhs.indexes.y }
+            }
+        }
+        
         func imprint(values: [Texture]) {
             for texture in values {
                 guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
@@ -94,32 +103,12 @@ extension BitmapRenderer {
         }
         
         imprint(values: floor)
-        imprint(
-            values: flats.sorted(by: {
-                if ($0.indexes.x == $1.indexes.x) {
-                    return ($0.indexes.y < $1.indexes.y)
-                } else {
-                    return $0.indexes.x > $1.indexes.x
-                }
-            })
-        )
-        imprint(
-            values: others.sorted(by: {
-                if (($0.indexes.x == $1.indexes.x) && ($0.indexes.y == $1.indexes.y)) {
-                    return $0.order.rawValue < $1.order.rawValue
-                } else {
-                    if ($0.indexes.y == $1.indexes.y) { return $0.indexes.x > $1.indexes.x }
-                    else { return $0.indexes.y < $1.indexes.y }
-                }
-            })
-        )
+        imprint(values: flats.sorted(by: compare(lhs:rhs:)))
+        imprint(values: others.sorted(by: compare(lhs:rhs:)))
         imprint(values: roofs)
                 
         DispatchQueue.main.async(execute: {
-            self.canvas = .init(
-                cgImage: ctx.makeImage()!,
-                size: .init(width: ctx.width, height: ctx.height)
-            )
+            self.canvas = .init(cgImage: ctx.makeImage()!, size: .init(width: ctx.width, height: ctx.height))
         })
     }
     
