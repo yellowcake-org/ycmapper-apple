@@ -78,7 +78,7 @@ extension ContentView {
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
-        self.renderer = .init(fetcher: self.fetcher!)
+        self.renderer = .init(cache: .init(fetcher: self.fetcher!))
     }
 }
 
