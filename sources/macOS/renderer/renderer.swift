@@ -54,6 +54,9 @@ class BitmapRenderer: ObservableObject {
         } set_coordinates: { texture, coordinates, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .update(texture: texture, coordinates: coordinates) ?? YC_VID_STATUS_CORRUPTED
+        } set_indexes: { texture, indexes, scale, ctx in
+            ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
+                .update(texture: texture, indexes: indexes, scale: scale) ?? YC_VID_STATUS_CORRUPTED
         }
     }
 }
@@ -91,10 +94,25 @@ extension BitmapRenderer {
         }
         
         imprint(values: floor)
-        imprint(values: flats)
-        imprint(values: others.sorted(by: {
-            ($0.origin.x > $1.origin.x) && ($0.origin.y < $1.origin.y) && ($0.order.rawValue < $1.order.rawValue)
-        }))
+        imprint(
+            values: flats.sorted(by: {
+                if ($0.indexes.x == $1.indexes.x) {
+                    return ($0.indexes.y < $1.indexes.y)
+                } else {
+                    return $0.indexes.x > $1.indexes.x
+                }
+            })
+        )
+        imprint(
+            values: others.sorted(by: {
+                if (($0.indexes.x == $1.indexes.x) && ($0.indexes.y == $1.indexes.y)) {
+                    return $0.order.rawValue < $1.order.rawValue
+                } else {
+                    if ($0.indexes.y == $1.indexes.y) { return $0.indexes.x > $1.indexes.x }
+                    else { return $0.indexes.y < $1.indexes.y }
+                }
+            })
+        )
         imprint(values: roofs)
                 
         DispatchQueue.main.async(execute: {
@@ -138,6 +156,8 @@ private extension BitmapRenderer {
                 uuid: .init(),
                 frame: frame,
                 origin: .zero,
+                indexes: .init(x: .zero, y: .zero),
+                grid: .zero,
                 order: YC_VID_TEXTURE_ORDER_ROOF,
                 visibility: YC_VID_TEXTURE_VISIBILITY_OFF
             )
@@ -204,6 +224,23 @@ private extension BitmapRenderer {
         
         self.textures[uuid]?.origin.x = CGFloat(coordinates.x)
         self.textures[uuid]?.origin.y = CGFloat(coordinates.y)
+        
+        return YC_VID_STATUS_OK
+    }
+    
+    func update(
+        texture: UnsafeMutablePointer<yc_vid_texture_t>?,
+        indexes: yc_vid_indexes_t,
+        scale: size_t
+    ) -> yc_vid_status_t {
+        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
+        else { return YC_VID_STATUS_INPUT }
+        
+        guard self.textures[uuid] != nil
+        else { return YC_VID_STATUS_CORRUPTED }
+        
+        self.textures[uuid]?.grid = scale
+        self.textures[uuid]?.indexes = indexes
         
         return YC_VID_STATUS_OK
     }
