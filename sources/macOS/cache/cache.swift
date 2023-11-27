@@ -37,7 +37,7 @@ extension Cache {
             let index = yc_res_pro_index_from_sprite_id(fid)
             let type = yc_res_pro_object_type_from_fid(fid)
             
-            let parsed = self.fetcher.sprite(at: index, for: type)
+            let parsed = self.fetcher.sprite(fid: fid)
             defer { yc_res_frm_sprite_invalidate(parsed.0.sprite); parsed.0.sprite.deallocate() }
             
             let animations: [Sprite.Animation] = Array(

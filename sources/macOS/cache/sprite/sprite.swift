@@ -47,6 +47,8 @@ extension Cache {
                         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
                     )!
                     
+                    ref.interpolationQuality = .high
+                    
                     for v_idx in 0..<Int(texture.dimensions.vertical) {
                         for h_idx in 0..<Int(texture.dimensions.horizontal) {
                             let rows = v_idx * (Int(texture.dimensions.horizontal) * 4)
@@ -72,8 +74,12 @@ extension Cache {
                             height: CGFloat(texture.dimensions.vertical)
                         ),
                         shift: .init(
-                            x: CGFloat(texture.shift.horizontal + shift.horizontal),
-                            y: CGFloat(texture.shift.vertical + shift.vertical)
+                            x: CGFloat(
+                                shift.horizontal + texture.shift.horizontal - Int16(texture.dimensions.horizontal) / 2
+                            ),
+                            y: CGFloat(
+                                shift.vertical + texture.shift.vertical
+                            )
                         ),
                         image: ref.makeImage()!
                     )

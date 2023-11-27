@@ -19,12 +19,17 @@ class BitmapRenderer: ObservableObject {
     private(set) public var canvas: NSImage? = nil
     private var textures: [UUID : Texture] = .init()
     
-    private var ctx = CGContext(
-        data: nil, width: 8000, height: 3600, 
-        bitsPerComponent: 8, bytesPerRow: 4 * 8000,
-        space: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
+    private var ctx = {
+        let ctx = CGContext(
+            data: nil, width: 8000, height: 3600,
+            bitsPerComponent: 8, bytesPerRow: 4 * 8000,
+            space: .init(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )
+        
+        ctx?.interpolationQuality = .high
+        return ctx
+    }()
     
     deinit {
         debugPrint("deinit RENDERER")
@@ -32,9 +37,9 @@ class BitmapRenderer: ObservableObject {
     
     init(cache: Cache) {
         self.cache = cache
-        self.callbacks = yc_vid_texture_api_t { type, sprite_idx, orientation, destination, ctx  in
+        self.callbacks = yc_vid_texture_api_t { fid, orientation, destination, ctx  in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
-                type: type, sprite_idx: sprite_idx, orientation: orientation, destination: destination
+                fid: fid, orientation: orientation, destination: destination
             ) ?? YC_VID_STATUS_CORRUPTED
         } invalidate: { texture, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
@@ -59,15 +64,19 @@ extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
         
-        for (_, texture) in self.textures.sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue }) {
+        for (_, texture) in self.textures
+            .sorted(by: { ($0.value.origin.x + $0.value.frame.shift.x) > ($1.value.origin.x + $1.value.frame.shift.x) })
+            .sorted(by: { ($0.value.origin.y + $0.value.frame.shift.y) < ($1.value.origin.y + $1.value.frame.shift.y) })
+            .sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue })
+        {
             guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
-            
+                        
             ctx.draw(
                 texture.frame.image,
                 in: .init(
                     origin: .init(
                         x: texture.origin.x + texture.frame.shift.x,
-                        y: CGFloat(ctx.height) - texture.origin.y + texture.frame.shift.y // CG coords are upside down
+                        y: CGFloat(ctx.height) - (texture.origin.y + texture.frame.shift.y) // CG coords are upside down
                     ),
                     size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
                 )
@@ -95,14 +104,13 @@ extension BitmapRenderer {
 
 private extension BitmapRenderer {
     func initialize(
-        type: yc_res_pro_object_type_t,
-        sprite_idx: UInt16,
+        fid: UInt32,
         orientation: yc_res_math_orientation_t,
         destination: UnsafeMutablePointer<yc_vid_texture_set_t>?
     ) -> yc_vid_status_t {
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
         
-        let sprite = self.cache.fetch(for: yc_res_pro_fid_from(sprite_idx, type))
+        let sprite = self.cache.fetch(for: fid)
         let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
         
         destination.pointee.fps = animation.fps
@@ -116,7 +124,7 @@ private extension BitmapRenderer {
                 uuid: .init(),
                 frame: frame,
                 origin: .zero,
-                order: YC_VID_TEXTURE_ORDER_NORMAL,
+                order: YC_VID_TEXTURE_ORDER_ROOF,
                 visibility: YC_VID_TEXTURE_VISIBILITY_OFF
             )
             
