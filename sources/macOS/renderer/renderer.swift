@@ -63,25 +63,39 @@ class BitmapRenderer: ObservableObject {
 extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
+        let values = self.textures.values
         
-        for (_, texture) in self.textures
-            .sorted(by: { ($0.value.origin.x + $0.value.frame.shift.x) > ($1.value.origin.x + $1.value.frame.shift.x) })
-            .sorted(by: { ($0.value.origin.y + $0.value.frame.shift.y) < ($1.value.origin.y + $1.value.frame.shift.y) })
-            .sorted(by: { $0.value.order.rawValue < $1.value.order.rawValue })
-        {
-            guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
-                        
-            ctx.draw(
-                texture.frame.image,
-                in: .init(
-                    origin: .init(
-                        x: texture.origin.x + texture.frame.shift.x,
-                        y: CGFloat(ctx.height) - (texture.origin.y + texture.frame.shift.y) // CG coords are upside down
-                    ),
-                    size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
+        let floor = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLOOR })
+        let flats = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLAT })
+        let others = values.filter({
+            $0.order.rawValue > YC_VID_TEXTURE_ORDER_FLAT.rawValue &&
+            $0.order.rawValue < YC_VID_TEXTURE_ORDER_ROOF.rawValue
+        })
+        let roofs = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_ROOF })
+        
+        func imprint(values: [Texture]) {
+            for texture in values {
+                guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
+                            
+                ctx.draw(
+                    texture.frame.image,
+                    in: .init(
+                        origin: .init(
+                            x: texture.origin.x + texture.frame.shift.x,
+                            y: CGFloat(ctx.height) - (texture.origin.y + texture.frame.shift.y) // CG coords are upside down
+                        ),
+                        size: .init(width: texture.frame.size.width, height: texture.frame.size.height)
+                    )
                 )
-            )
+            }
         }
+        
+        imprint(values: floor)
+        imprint(values: flats)
+        imprint(values: others.sorted(by: {
+            ($0.origin.x > $1.origin.x) && ($0.origin.y < $1.origin.y) && ($0.order.rawValue < $1.order.rawValue)
+        }))
+        imprint(values: roofs)
                 
         DispatchQueue.main.async(execute: {
             self.canvas = .init(
