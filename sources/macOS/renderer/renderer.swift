@@ -12,8 +12,10 @@ import SwiftUI
 import Combine
 
 class BitmapRenderer: ObservableObject {
-    public let callbacks: yc_vid_texture_api_t
     public let cache: Cache
+    public var callbacks: yc_vid_texture_api_t
+    
+    public var layers: [Bool]
     
     @Published
     private(set) public var canvas: NSImage? = nil
@@ -27,16 +29,14 @@ class BitmapRenderer: ObservableObject {
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )
         
-        ctx?.interpolationQuality = .high
+        ctx?.interpolationQuality = .none
         return ctx
     }()
     
-    deinit {
-        debugPrint("deinit RENDERER")
-    }
-    
-    init(cache: Cache) {
+    init(cache: Cache, layers: [Bool]) {
         self.cache = cache
+        self.layers = layers
+        
         self.callbacks = yc_vid_texture_api_t { fid, orientation, destination, ctx  in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
                 fid: fid, orientation: orientation, destination: destination
@@ -66,7 +66,9 @@ class BitmapRenderer: ObservableObject {
 extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
-        let values = self.textures.values
+        ctx.clear(.init(x: 0, y: 0, width: ctx.width, height: ctx.height))
+        
+        let values = self.textures.values.filter({ self.layers[Int($0.order.rawValue)] })
         
         let floor = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLOOR })
         let flats = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLAT })
@@ -88,7 +90,7 @@ extension BitmapRenderer {
         func imprint(values: [Texture]) {
             for texture in values {
                 guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
-                            
+                
                 ctx.draw(
                     texture.frame.image,
                     in: .init(
@@ -117,7 +119,6 @@ extension BitmapRenderer {
         
         self.cache.invalidate()
         self.textures.removeAll()
-        self.ctx = nil
     }
 }
 
