@@ -18,8 +18,6 @@ extension BitmapRenderer {
         var order: yc_vid_texture_order_t
         var visibility: yc_vid_texture_visibility_t
         
-        deinit { debugPrint("deinit TEXTURE") }
-        
         init(uuid: UUID, frame: Cache.Sprite.Animation.Frame, origin: CGPoint, indexes: yc_vid_indexes_t, grid: size_t, order: yc_vid_texture_order_t, visibility: yc_vid_texture_visibility_t) {
             self.uuid = uuid
             self.frame = frame

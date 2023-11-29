@@ -27,8 +27,6 @@ extension Cache {
                 
                 let image: CGImage
                 
-                deinit { debugPrint("deinit FRAME") }
-                
                 init(size: CGSize, shift: CGPoint, image: CGImage?) {
                     self.size = size
                     self.shift = shift
@@ -47,7 +45,7 @@ extension Cache {
                         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
                     )!
                     
-                    ref.interpolationQuality = .high
+                    ref.interpolationQuality = .none
                     
                     for v_idx in 0..<Int(texture.dimensions.vertical) {
                         for h_idx in 0..<Int(texture.dimensions.horizontal) {
@@ -86,8 +84,6 @@ extension Cache {
                 }
             }
             
-            deinit { debugPrint("deinit ANIMATION") }
-            
             init(fps: UInt16, keyframe_idx: UInt16, frames: [Frame]) {
                 self.fps = fps
                 self.keyframe_idx = keyframe_idx
@@ -102,8 +98,6 @@ extension Cache {
                 self.init(fps: animation.fps, keyframe_idx: animation.keyframe_idx, frames: frames)
             }
         }
-        
-        deinit { debugPrint("deinit SPRITE") }
         
         init(id: UInt32, idx: UInt16, type: yc_res_pro_object_type_t, indexes: [[Animation].Index], animations: [Animation]) {
             self.id = id

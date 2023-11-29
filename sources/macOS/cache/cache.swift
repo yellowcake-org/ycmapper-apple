@@ -14,7 +14,6 @@ class Cache {
     private var palette: yc_res_pal_parse_result_t = .init()
     
     deinit {
-        debugPrint("deinit CACHE")
         self.palette.colors.deallocate()
     }
     

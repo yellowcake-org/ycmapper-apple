@@ -11,10 +11,6 @@ public class Fetcher {
     public let map: URL
     public let root: URL
     
-    deinit {
-        debugPrint("deinit FETCHER")
-    }
-    
     init(map: URL, root: URL) {
         self.map = map
         self.root = root

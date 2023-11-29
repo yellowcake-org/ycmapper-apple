@@ -12,8 +12,8 @@ import SwiftUI
 import Combine
 
 class BitmapRenderer: ObservableObject {
-    public let callbacks: yc_vid_texture_api_t
     public let cache: Cache
+    public var callbacks: yc_vid_texture_api_t
     
     @Published
     private(set) public var canvas: NSImage? = nil
@@ -27,13 +27,9 @@ class BitmapRenderer: ObservableObject {
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )
         
-        ctx?.interpolationQuality = .high
+        ctx?.interpolationQuality = .none
         return ctx
     }()
-    
-    deinit {
-        debugPrint("deinit RENDERER")
-    }
     
     init(cache: Cache) {
         self.cache = cache
@@ -117,7 +113,6 @@ extension BitmapRenderer {
         
         self.cache.invalidate()
         self.textures.removeAll()
-        self.ctx = nil
     }
 }
 
