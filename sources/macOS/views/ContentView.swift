@@ -143,7 +143,10 @@ struct ContentView: View {
                         })
                     })
                 }, label: {
-                    Label("Layers", systemImage: "square.3.layers.3d")
+                    Label(
+                        "Layers",
+                        systemImage: self.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
+                    )
                 }).disabled(self.isProcessing || self.fetcher == nil)
             })
         })
