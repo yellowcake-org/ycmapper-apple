@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     struct Elevation: Hashable, Equatable, Identifiable {
@@ -19,6 +20,9 @@ struct ContentView: View {
         var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
         var systemImage: String { self.ptr == nil ? "circle.dashed" : "\(self.idx + 1).circle" }
     }
+    
+    @State
+    private var document = ImageDocument(image: nil)
     
     @State
     private var elevation: Elevation = .empty
@@ -41,6 +45,9 @@ struct ContentView: View {
     
     @State
     private var isImporting: Bool = false
+    
+    @State
+    private var isExporting: Bool = false
         
     @State
     private var isProcessing: Bool = false
@@ -97,6 +104,16 @@ struct ContentView: View {
                 }
             }
         )
+        .fileExporter(
+            isPresented: self.$isExporting,
+            document: self.document,
+            contentType: UTType.png,
+            defaultFilename: self.fetcher?.map
+                .deletingPathExtension().lastPathComponent.appending("-\(self.elevation.idx + 1)"),
+            onCompletion: { result in
+                //
+            }
+        )
         .toolbar(content: {
             ToolbarItem(placement: .navigation, content: {
                 Picker(
@@ -148,6 +165,13 @@ struct ContentView: View {
                         systemImage: self.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
                     )
                 }).disabled(self.isProcessing || self.fetcher == nil)
+            })
+            
+            ToolbarItem(content: {
+                Button("Export", systemImage: "square.and.arrow.up", action: {
+                    self.document = .init(image: self.renderer!.canvas!)
+                    self.isExporting.toggle()
+                }).disabled(self.isProcessing || self.renderer?.canvas == nil)
             })
         })
         .onDisappear(perform: { self.invalidate() })

@@ -18,6 +18,7 @@
 		B49D325D2B03EF4100DBB05B /* libycenv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31B02B03ECDF00DBB05B /* libycenv.a */; };
 		B49D325E2B03EF4100DBB05B /* libycres.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31BE2B03ECDF00DBB05B /* libycres.a */; };
 		B49D325F2B03EF4100DBB05B /* libycvid.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31C22B03ECDF00DBB05B /* libycvid.a */; };
+		B4F03C022B17A3FE00BD6449 /* image.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F03C012B17A3FE00BD6449 /* image.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -211,6 +212,7 @@
 		B49D302B2B03EC5900DBB05B /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = libycvid.xcodeproj; sourceTree = "<group>"; };
 		B49D32612B03F29D00DBB05B /* imports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = imports.h; sourceTree = "<group>"; };
+		B4F03C012B17A3FE00BD6449 /* image.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = image.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -241,6 +243,7 @@
 			children = (
 				B49D302A2B03EC5900DBB05B /* ycmapper.swift */,
 				B406EC902B0EA2970008C796 /* config */,
+				B4F03BEA2B17A3ED00BD6449 /* document */,
 				B406ECAB2B0EA82D0008C796 /* views */,
 				B44715AB2B12B972003E27C4 /* cache */,
 				B406ECAC2B0EAE6D0008C796 /* fetchers */,
@@ -368,6 +371,14 @@
 				B49D31C22B03ECDF00DBB05B /* libycvid.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B4F03BEA2B17A3ED00BD6449 /* document */ = {
+			isa = PBXGroup;
+			children = (
+				B4F03C012B17A3FE00BD6449 /* image.swift */,
+			);
+			path = document;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -613,6 +624,7 @@
 				B44A981B2B11927D0025115E /* texture.swift in Sources */,
 				B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */,
 				B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */,
+				B4F03C022B17A3FE00BD6449 /* image.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
