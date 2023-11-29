@@ -17,7 +17,7 @@ struct ContentView: View {
         let ptr: UnsafeMutablePointer<yc_res_map_level_t>!
         
         var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
-        var systemImage: String { self.ptr == nil ? "circle.dotted" : "\(self.idx + 1).circle" }
+        var systemImage: String { self.ptr == nil ? "circle.dashed" : "\(self.idx + 1).circle" }
     }
     
     @State
@@ -25,6 +25,19 @@ struct ContentView: View {
     
     @State
     private var elevations: [Elevation] = [.empty, .init(idx: 0, ptr: nil), .init(idx: 0, ptr: nil)]
+    
+    @State
+    private var layers: [Bool] = .init(repeating: true, count: Int(YC_VID_TEXTURE_ORDER_COUNT.rawValue)) {
+        didSet {
+            self.renderer?.layers = self.layers
+            
+            self.isProcessing = true
+            DispatchQueue.global(qos: .userInitiated).async(execute: {
+                defer { self.isProcessing = false }
+                self.renderer?.render()
+            })
+        }
+    }
     
     @State
     private var isImporting: Bool = false
@@ -53,14 +66,22 @@ struct ContentView: View {
                     Text("Open map")
                 })
                 .padding()
-            }
-            
-            if let canvas = self.renderer?.canvas {
-                GeometryReader { proxy in
-                    ScrollView([.horizontal, .vertical], content: {
-                        Image(nsImage: canvas)
-                    })
-                    .frame(width: proxy.size.width, height: proxy.size.height)
+            } else {
+                if self.elevation.ptr == nil {
+                    ContentUnavailableView(
+                        "Empty elevation",
+                        systemImage: "rectangle.dashed", // "pencil.slash"
+                        description: Text("Selected elevation has no content.")
+                    )
+                } else {
+                    if let canvas = self.renderer?.canvas {
+                        GeometryReader { proxy in
+                            ScrollView([.horizontal, .vertical], content: {
+                                Image(nsImage: canvas)
+                            })
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                        }
+                    }
                 }
             }
         })
@@ -101,7 +122,29 @@ struct ContentView: View {
             })
             
             ToolbarItem(content: {
-                if self.isProcessing { ProgressView().progressViewStyle(.circular).scaleEffect(0.5) }
+                if self.isProcessing { ProgressView().progressViewStyle(.circular).scaleEffect(0.6) }
+            })
+            
+            ToolbarItem(content: {
+                Menu(content: {
+                    ForEach(Array(self.layers.enumerated()), id: \.offset, content: { (index, _) in
+                        Button(action: {
+                            var layers = self.layers
+                            layers[index].toggle()
+                            
+                            self.layers = layers
+                        }, label: {
+                            HStack(content: {
+                                self.layers[index] ?
+                                Image(systemName: "checkmark.circle") : Image(systemName: "circle.dotted")
+                                
+                                Text(yc_vid_texture_order_t(rawValue: UInt32(index)).title())
+                            })
+                        })
+                    })
+                }, label: {
+                    Label("Layers", systemImage: "square.3.layers.3d")
+                }).disabled(self.isProcessing || self.fetcher == nil)
             })
         })
         .onDisappear(perform: { self.invalidate() })
@@ -123,7 +166,10 @@ extension ContentView {
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
-        self.renderer = .init(cache: .init(fetcher: self.fetcher!))
+        self.renderer = .init(
+            cache: .init(fetcher: self.fetcher!),
+            layers: self.layers
+        )
     }
 }
 
@@ -185,7 +231,7 @@ extension ContentView {
             (0, self.map.levels.0),
             (1, self.map.levels.1),
             (2, self.map.levels.2),
-        ].compactMap({ t in t.1.flatMap({ .init(idx: t.0, ptr: $0) }) })
+        ].map({ .init(idx: $0.0, ptr: $0.1) })
         
         self.elevation = self.elevations.first!
     }
@@ -195,6 +241,8 @@ extension ContentView {
     func display() {
         self.isProcessing = true
         defer { self.isProcessing = false }
+        
+        guard self.elevation.ptr != nil else { return }
         
         var tmp = yc_vid_renderer_t(
             context: withUnsafeMutablePointer(to: &self.renderer!, { $0 }),
@@ -244,5 +292,21 @@ extension ContentView {
         
         self.renderer?.invalidate()
         yc_res_map_invalidate(&self.map)
+    }
+}
+
+extension yc_vid_texture_order_t {
+    func title() -> String {
+        switch self.rawValue {
+        case YC_VID_TEXTURE_ORDER_FLOOR.rawValue: return "Floor"
+        case YC_VID_TEXTURE_ORDER_FLAT.rawValue: return "Flats"
+        case YC_VID_TEXTURE_ORDER_WALL.rawValue: return "Walls"
+        case YC_VID_TEXTURE_ORDER_SCENERY.rawValue: return "Scenery"
+        case YC_VID_TEXTURE_ORDER_MISC.rawValue: return "Miscellanea"
+        case YC_VID_TEXTURE_ORDER_ITEM.rawValue: return "Items"
+        case YC_VID_TEXTURE_ORDER_CRITTER.rawValue: return "Critters"
+        case YC_VID_TEXTURE_ORDER_ROOF.rawValue: return "Roofs"
+        default: return "Unknown"
+        }
     }
 }

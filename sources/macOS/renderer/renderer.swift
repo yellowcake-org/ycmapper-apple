@@ -15,6 +15,8 @@ class BitmapRenderer: ObservableObject {
     public let cache: Cache
     public var callbacks: yc_vid_texture_api_t
     
+    public var layers: [Bool]
+    
     @Published
     private(set) public var canvas: NSImage? = nil
     private var textures: [UUID : Texture] = .init()
@@ -31,8 +33,10 @@ class BitmapRenderer: ObservableObject {
         return ctx
     }()
     
-    init(cache: Cache) {
+    init(cache: Cache, layers: [Bool]) {
         self.cache = cache
+        self.layers = layers
+        
         self.callbacks = yc_vid_texture_api_t { fid, orientation, destination, ctx  in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
                 fid: fid, orientation: orientation, destination: destination
@@ -62,7 +66,7 @@ class BitmapRenderer: ObservableObject {
 extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
-        let values = self.textures.values
+        let values = self.textures.values.filter({ self.layers[Int($0.order.rawValue)] == true })
         
         let floor = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLOOR })
         let flats = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLAT })
