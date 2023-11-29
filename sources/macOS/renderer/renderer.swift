@@ -66,7 +66,9 @@ class BitmapRenderer: ObservableObject {
 extension BitmapRenderer {
     func render() {
         guard let ctx = self.ctx else { return }
-        let values = self.textures.values.filter({ self.layers[Int($0.order.rawValue)] == true })
+        ctx.clear(.init(x: 0, y: 0, width: ctx.width, height: ctx.height))
+        
+        let values = self.textures.values.filter({ self.layers[Int($0.order.rawValue)] })
         
         let floor = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLOOR })
         let flats = values.filter({ $0.order == YC_VID_TEXTURE_ORDER_FLAT })
@@ -88,7 +90,7 @@ extension BitmapRenderer {
         func imprint(values: [Texture]) {
             for texture in values {
                 guard texture.visibility == YC_VID_TEXTURE_VISIBILITY_ON else { continue }
-                            
+                
                 ctx.draw(
                     texture.frame.image,
                     in: .init(
