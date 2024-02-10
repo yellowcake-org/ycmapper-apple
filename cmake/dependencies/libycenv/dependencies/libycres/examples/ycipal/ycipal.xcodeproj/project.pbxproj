@@ -1,0 +1,907 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		0330CD2517D54DDEB867E607 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = AF13D06232584BFF81D0F21D /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				D200EF919EA72D76C93BECB8 /* Generate CMakeFiles/ZERO_CHECK */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		248A1CA7E1224C239AB48DBA /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = E87C2864E8EC4BACA963E6B9 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				ACA3F3BC01764E7EC5428A29 /* Generate CMakeFiles/ALL_BUILD */,
+			);
+			dependencies = (
+				804460F7E327492AB5C6876C /* PBXTargetDependency */,
+				EEA748DBDD6E4DCE950DF79D /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		EFB49F870FD54AD298B079A7 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 4D1B6477552E4BE1B720C8F5 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				93426DA6A4AC2C2AC9CE883C /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				36374051E3754A9DB79E19EC /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		4F02C95FEC224C2E98C0D73E /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/source/main.c */ = {isa = PBXBuildFile; fileRef = 395C3DDADAFE432B8EBFF4AA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/source/main.c */; };
+		7C847FE0957848BFA3377953 /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 8644DA591E0B479E9F956FCA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		03457E2DC66F496B8F6301FA /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		3080FAB24F8641FD916080CB /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+		618C90DD05C94160B62DA435 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		9927ADAF2CF24F18B27E663B /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		2A7EEC5FED474CEBA3E65895 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EEDC55BCE6B44B84B56003E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0330CD2517D54DDEB867E607;
+			remoteInfo = ZERO_CHECK;
+		};
+		A71719989E9D443887F4C49D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EEDC55BCE6B44B84B56003E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 248A1CA7E1224C239AB48DBA;
+			remoteInfo = ALL_BUILD;
+		};
+		AB6F07BE566D493CB48F5A1C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EEDC55BCE6B44B84B56003E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 926E6B899B7D4616BA5BD292;
+			remoteInfo = ycipal;
+		};
+		D9A4E0FEB991472AB8001322 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EEDC55BCE6B44B84B56003E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0330CD2517D54DDEB867E607;
+			remoteInfo = ZERO_CHECK;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		395C3DDADAFE432B8EBFF4AA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/source/main.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = main.c; path = source/main.c; sourceTree = SOURCE_ROOT; };
+		4D01909142724C2F9EA44D45 /* ycipal */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = ycipal; sourceTree = BUILT_PRODUCTS_DIR; };
+		8644DA591E0B479E9F956FCA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		D8E0E8BAC8814A54AB8006A7 /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A640DEFF1DBB4996A5766DD5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1CE7BA364A3C434196FA5666 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		37DF56F876EA46BEA41B148E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B4E054E82C94CE5B65FC020 = {
+			isa = PBXGroup;
+			children = (
+				B0BDD04BAA334EB9B0F0E637 /* ycipal */,
+				FFA3D73C5E9D453F8A907A60 /* ALL_BUILD */,
+				DBCDE6E5C1004184A773BE90 /* Products */,
+				37DF56F876EA46BEA41B148E /* Frameworks */,
+				1CE7BA364A3C434196FA5666 /* Resources */,
+			);
+			sourceTree = "<group>";
+		};
+		B0BDD04BAA334EB9B0F0E637 /* ycipal */ = {
+			isa = PBXGroup;
+			children = (
+				E1EB22E1FDAA48A49BBBD431 /* Source Files */,
+				8644DA591E0B479E9F956FCA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */,
+			);
+			name = ycipal;
+			sourceTree = "<group>";
+		};
+		DBCDE6E5C1004184A773BE90 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4D01909142724C2F9EA44D45 /* ycipal */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DDA2916B65AE41DD9A5A483C /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		E1EB22E1FDAA48A49BBBD431 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				395C3DDADAFE432B8EBFF4AA /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/source/main.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		FFA3D73C5E9D453F8A907A60 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				DDA2916B65AE41DD9A5A483C /* CMake Rules */,
+				D8E0E8BAC8814A54AB8006A7 /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		926E6B899B7D4616BA5BD292 /* ycipal */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D9B2E31553384D56B3F8FFA4 /* Build configuration list for PBXNativeTarget "ycipal" */;
+			buildPhases = (
+				B0B8AF472D784AE6B545A301 /* Sources */,
+				A640DEFF1DBB4996A5766DD5 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F1B501522A814C4AB851AA74 /* PBXTargetDependency */,
+			);
+			name = ycipal;
+			productName = ycipal;
+			productReference = 4D01909142724C2F9EA44D45 /* ycipal */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EEDC55BCE6B44B84B56003E4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1520;
+			};
+			buildConfigurationList = 2BE06AF91CBC4D03B77D86C0 /* Build configuration list for PBXProject "ycipal" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				03457E2DC66F496B8F6301FA /* Debug */,
+				618C90DD05C94160B62DA435 /* Release */,
+				9927ADAF2CF24F18B27E663B /* MinSizeRel */,
+				3080FAB24F8641FD916080CB /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 9B4E054E82C94CE5B65FC020;
+			projectDirPath = "/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal";
+			projectRoot = "";
+			targets = (
+				248A1CA7E1224C239AB48DBA /* ALL_BUILD */,
+				0330CD2517D54DDEB867E607 /* ZERO_CHECK */,
+				EFB49F870FD54AD298B079A7 /* install */,
+				926E6B899B7D4616BA5BD292 /* ycipal */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3C0110FC8322DE7E50886E21 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		87AF4882E018677E2624B544 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		93426DA6A4AC2C2AC9CE883C /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /opt/homebrew/Cellar/cmake/3.28.1/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /opt/homebrew/Cellar/cmake/3.28.1/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /opt/homebrew/Cellar/cmake/3.28.1/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /opt/homebrew/Cellar/cmake/3.28.1/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		9B50530E35CC49C82C2FACCF = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		ACA3F3BC01764E7EC5428A29 /* Generate CMakeFiles/ALL_BUILD */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ALL_BUILD";
+			outputPaths = (
+"/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeFiles/ALL_BUILD"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/examples/Debug/echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/examples/Release/echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/examples/MinSizeRel/echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/examples/RelWithDebInfo/echo Build\\ all\\ projects
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		D200EF919EA72D76C93BECB8 /* Generate CMakeFiles/ZERO_CHECK */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ZERO_CHECK";
+			outputPaths = (
+"/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeFiles/ZERO_CHECK"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  make -f /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  make -f /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  make -f /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal
+  make -f /Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/CMakeScripts/ReRunCMake.make
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B0B8AF472D784AE6B545A301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F02C95FEC224C2E98C0D73E /* /Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/source/main.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		36374051E3754A9DB79E19EC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 248A1CA7E1224C239AB48DBA /* ALL_BUILD */;
+			targetProxy = A71719989E9D443887F4C49D /* PBXContainerItemProxy */;
+		};
+		804460F7E327492AB5C6876C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 926E6B899B7D4616BA5BD292 /* ycipal */;
+			targetProxy = AB6F07BE566D493CB48F5A1C /* PBXContainerItemProxy */;
+		};
+		EEA748DBDD6E4DCE950DF79D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0330CD2517D54DDEB867E607 /* ZERO_CHECK */;
+			targetProxy = 2A7EEC5FED474CEBA3E65895 /* PBXContainerItemProxy */;
+		};
+		F1B501522A814C4AB851AA74 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0330CD2517D54DDEB867E607 /* ZERO_CHECK */;
+			targetProxy = D9A4E0FEB991472AB8001322 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1CE839E25B944B95B238064C /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = /Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SYMROOT = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build";
+			};
+			name = MinSizeRel;
+		};
+		2B94FB4791B8481AA0275542 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		2F221EC65E164070B159757F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		34E4044F2077456298F2D746 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/include","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/../dependencies/argtable/src","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = ("'-std=gnu99' -Wall -Wextra -pedantic -Werror ","$(inherited)");
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/src/RelWithDebInfo/libargtable3_static.a","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/RelWithDebInfo/libycres.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ycipal;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build/ycipal.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		4CB52E9AF99B4969A09373E6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/include","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/../dependencies/argtable/src","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = ("'-std=gnu99' -Wall -Wextra -pedantic -Werror ","$(inherited)");
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/src/MinSizeRel/libargtable3_static.a","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/MinSizeRel/libycres.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ycipal;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build/ycipal.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		4DEC4F346B4247B9B4CE50CA /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		5B17997527B3452F95EBA82C /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5D318CC9D4D94EF2BB50C3C0 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		6416E9FE865D4797940C7A3E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		78A8DD3F19B74F40BEC099BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = /Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SYMROOT = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build";
+			};
+			name = Release;
+		};
+		790077B4467644BAA69FD6CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		8BDE61A3E7494D59BCD2CBB6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/include","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/../dependencies/argtable/src","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = ("'-std=gnu99' -Wall -Wextra -pedantic -Werror ","$(inherited)");
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/src/Debug/libargtable3_staticd.a","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/Debug/libycres.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ycipal;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build/ycipal.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		957AE9264474414A8443BF35 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		A8D373E5286E47D3AFAB63FE /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = /Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SYMROOT = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build";
+			};
+			name = RelWithDebInfo;
+		};
+		B6D7A664881F48DBBC6CB8A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		BCD4960A0E6A4B6B898EA24C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = /Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk;
+				SYMROOT = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build";
+			};
+			name = Debug;
+		};
+		BF0C25CCB2054A9791FED495 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		D3737BA134D74FDE9F61D7B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		DC0B49DB25994297836675A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		FAD993B7144F443FB0A2E3D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/ycipal/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/include","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/examples/ycipal/../dependencies/argtable/src","/Users/0xceed/Repositories/ycmapper-apple/dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = ("'-std=gnu99' -Wall -Wextra -pedantic -Werror ","$(inherited)");
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/examples/dependencies/argtable/src/Release/libargtable3_static.a","/Users/0xceed/Repositories/ycmapper-apple/cmake/dependencies/libycenv/dependencies/libycres/Release/libycres.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ycipal;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/0xceed/Repositories/ycmapper-apple/cmake/build/ycipal.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2BE06AF91CBC4D03B77D86C0 /* Build configuration list for PBXProject "ycipal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCD4960A0E6A4B6B898EA24C /* Debug */,
+				78A8DD3F19B74F40BEC099BA /* Release */,
+				1CE839E25B944B95B238064C /* MinSizeRel */,
+				A8D373E5286E47D3AFAB63FE /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4D1B6477552E4BE1B720C8F5 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				957AE9264474414A8443BF35 /* Debug */,
+				790077B4467644BAA69FD6CF /* Release */,
+				2B94FB4791B8481AA0275542 /* MinSizeRel */,
+				6416E9FE865D4797940C7A3E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AF13D06232584BFF81D0F21D /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F221EC65E164070B159757F /* Debug */,
+				B6D7A664881F48DBBC6CB8A7 /* Release */,
+				BF0C25CCB2054A9791FED495 /* MinSizeRel */,
+				5D318CC9D4D94EF2BB50C3C0 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D9B2E31553384D56B3F8FFA4 /* Build configuration list for PBXNativeTarget "ycipal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BDE61A3E7494D59BCD2CBB6 /* Debug */,
+				FAD993B7144F443FB0A2E3D2 /* Release */,
+				4CB52E9AF99B4969A09373E6 /* MinSizeRel */,
+				34E4044F2077456298F2D746 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E87C2864E8EC4BACA963E6B9 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC0B49DB25994297836675A6 /* Debug */,
+				D3737BA134D74FDE9F61D7B3 /* Release */,
+				4DEC4F346B4247B9B4CE50CA /* MinSizeRel */,
+				5B17997527B3452F95EBA82C /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EEDC55BCE6B44B84B56003E4 /* Project object */;
+}
