@@ -207,7 +207,6 @@
 		B44A98182B1192430025115E /* sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sprite.swift; sourceTree = "<group>"; };
 		B44A981A2B11927D0025115E /* texture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = texture.swift; sourceTree = "<group>"; };
 		B49D300B2B03EB9900DBB05B /* ycmapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ycmapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B49D30292B03EC5900DBB05B /* ycmapper.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = ycmapper.entitlements; sourceTree = "<group>"; };
 		B49D302A2B03EC5900DBB05B /* ycmapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ycmapper.swift; sourceTree = "<group>"; };
 		B49D302B2B03EC5900DBB05B /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = libycvid.xcodeproj; sourceTree = "<group>"; };
@@ -233,7 +232,6 @@
 			isa = PBXGroup;
 			children = (
 				B49D32612B03F29D00DBB05B /* imports.h */,
-				B49D30292B03EC5900DBB05B /* ycmapper.entitlements */,
 			);
 			path = config;
 			sourceTree = "<group>";
@@ -674,7 +672,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_ENTITLEMENTS = sources/macOS/config/ycmapper.entitlements;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					dependencies/libycvid/include,
@@ -694,7 +691,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_ENTITLEMENTS = sources/macOS/config/ycmapper.entitlements;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					dependencies/libycvid/include,
