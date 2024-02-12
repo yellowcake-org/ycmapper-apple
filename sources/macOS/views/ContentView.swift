@@ -74,7 +74,7 @@ struct ContentView: View {
                 })
                 .padding()
             } else {
-                if self.elevation.ptr == nil {
+                if self.elevation.ptr == nil && !self.isProcessing {
                     ContentUnavailableView(
                         "Empty elevation",
                         systemImage: "rectangle.dashed", // "pencil.slash"
