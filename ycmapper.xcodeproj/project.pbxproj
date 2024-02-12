@@ -180,21 +180,21 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = AF7CDD2D986645C5BCF37E0D;
+			remoteGlobalIDString = CA8F2F20C1CD4EBD8B776BD0;
 			remoteInfo = ycenv;
 		};
 		B49D32582B03EF3100DBB05B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1574F2FE01A544BEBBCBAA76;
+			remoteGlobalIDString = 8E9A62EF091D43329A32F011;
 			remoteInfo = ycres;
 		};
 		B49D325A2B03EF3100DBB05B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 3F7CC36260CD421B99A8AFA8;
+			remoteGlobalIDString = D4ADC76CEFC74C6C92B9062D;
 			remoteInfo = ycvid;
 		};
 /* End PBXContainerItemProxy section */
@@ -659,6 +659,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -678,7 +679,6 @@
 					dependencies/libycvid/dependencies/libycenv/include,
 					dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include,
 				);
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.yellowcake.ycmapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -697,7 +697,6 @@
 					dependencies/libycvid/dependencies/libycenv/include,
 					dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include,
 				);
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.yellowcake.ycmapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
