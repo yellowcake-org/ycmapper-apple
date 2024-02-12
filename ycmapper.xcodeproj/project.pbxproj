@@ -673,18 +673,8 @@
 		B49D301B2B03EB9A00DBB05B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_MODULES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = sources/macOS/config/ycmapper.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = J3FXQPLD5W;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					dependencies/libycvid/include,
@@ -692,15 +682,9 @@
 					dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include,
 				);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.yellowcake.ycmapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = sources/macOS/config/imports.h;
 				SWIFT_VERSION = 5.0;
 			};
@@ -709,18 +693,8 @@
 		B49D301C2B03EB9A00DBB05B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_MODULES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = sources/macOS/config/ycmapper.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = J3FXQPLD5W;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					dependencies/libycvid/include,
@@ -728,15 +702,9 @@
 					dependencies/libycvid/dependencies/libycenv/dependencies/libycres/include,
 				);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.yellowcake.ycmapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = sources/macOS/config/imports.h;
 				SWIFT_VERSION = 5.0;
 			};
