@@ -33,14 +33,14 @@ class BitmapRenderer: ObservableObject {
         return ctx
     }()
     
-    init(cache: Cache, layers: [Bool]) {
+    init(cache: Cache, layers: [Bool]) throws {
         self.cache = cache
         self.layers = layers
         
         self.callbacks = yc_vid_texture_api_t { fid, orientation, destination, ctx  in
-            ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
+            (try? ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee.initialize(
                 fid: fid, orientation: orientation, destination: destination
-            ) ?? YC_VID_STATUS_CORRUPTED
+            )) ?? YC_VID_STATUS_CORRUPTED
         } invalidate: { texture, ctx in
             ctx?.assumingMemoryBound(to: BitmapRenderer.self).pointee
                 .invalidate(texture: texture) ?? YC_VID_STATUS_CORRUPTED
@@ -128,10 +128,10 @@ private extension BitmapRenderer {
         fid: UInt32,
         orientation: yc_res_math_orientation_t,
         destination: UnsafeMutablePointer<yc_vid_texture_set_t>?
-    ) -> yc_vid_status_t {
+    ) throws -> yc_vid_status_t {
         guard let destination = destination else { return YC_VID_STATUS_INPUT }
         
-        let sprite = self.cache.fetch(for: fid)
+        let sprite = try self.cache.fetch(for: fid)
         let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
         
         destination.pointee.fps = animation.fps

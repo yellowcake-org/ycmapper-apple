@@ -8,35 +8,45 @@
 import Foundation
 
 class Cache {
+    enum Error: Swift.Error {
+        case palette
+    }
+    
     public let fetcher: Fetcher
     
     private var sprites: [UInt32 : Sprite] = .init()
-    private var palette: yc_res_pal_parse_result_t = .init()
+    private var palette: yc_res_pal_parse_result_t?
     
     deinit {
-        self.palette.colors.deallocate()
+        self.palette?.colors.deallocate()
     }
     
-    init(fetcher: Fetcher) {
+    init(fetcher: Fetcher) throws {
         self.fetcher = fetcher
+        self.palette = .init()
         
         let status = yc_res_pal_parse(
             self.fetcher.root.appending(path: "COLOR.PAL").path,
             &io_fs_api,
-            &self.palette
+            &self.palette!
         )
         
-        assert(YC_RES_PAL_STATUS_OK == status)
+        guard status == YC_RES_PAL_STATUS_OK else {
+            self.palette = nil
+            throw Error.palette
+        }
     }
 }
 
 extension Cache {
-    func fetch(for fid: UInt32) -> Sprite {
+    func fetch(for fid: UInt32) throws -> Sprite {
+        guard let palette = self.palette else { throw Error.palette }
+        
         guard let sprite = self.sprites[fid] else {
             let index = yc_res_pro_index_from_sprite_id(fid)
             let type = yc_res_pro_object_type_from_fid(fid)
             
-            let parsed = self.fetcher.sprite(fid: fid)
+            let parsed = try self.fetcher.sprite(fid: fid)
             defer { yc_res_frm_sprite_invalidate(parsed.0.sprite); parsed.0.sprite.deallocate() }
             
             let animations: [Sprite.Animation] = Array(
@@ -63,7 +73,7 @@ extension Cache {
             
             self.sprites[fid] = sprite
             
-            return self.fetch(for: fid)
+            return try self.fetch(for: fid)
         }
         
         return sprite

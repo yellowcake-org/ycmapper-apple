@@ -10,6 +10,10 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct ContentView: View {
+    enum Error: Swift.Error {
+        case path, parsing, rendering
+    }
+    
     struct Elevation: Hashable, Equatable, Identifiable {
         static let empty = Self.init(idx: 0, ptr: nil)
         let id: UUID = .init()
@@ -20,6 +24,9 @@ struct ContentView: View {
         var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
         var systemImage: String { self.ptr == nil ? "circle.dashed" : "\(self.idx + 1).circle" }
     }
+    
+    @State
+    private var error: Swift.Error?
     
     @State
     private var document = ImageDocument(image: nil)
@@ -77,8 +84,14 @@ struct ContentView: View {
                 if self.elevation.ptr == nil && !self.isProcessing {
                     ContentUnavailableView(
                         "Empty elevation",
-                        systemImage: "rectangle.dashed", // "pencil.slash"
+                        systemImage: "rectangle.dashed",
                         description: Text("Selected elevation has no content.")
+                    )
+                } else if let _ = self.error {
+                    ContentUnavailableView(
+                        "Couldn't load",
+                        systemImage: "xmark.rectangle",
+                        description: Text("Please, check path to the file and if all resources are in place.")
                     )
                 } else {
                     if let canvas = self.renderer?.canvas {
@@ -99,7 +112,7 @@ struct ContentView: View {
             allowsMultipleSelection: false,
             onCompletion: { result in
                 switch result {
-                case .success(let urls): self.open(map: urls.first!)
+                case .success(let urls): do { try self.open(map: urls.first!) } catch { self.error = error }
                 default: ()
                 }
             }
@@ -126,14 +139,14 @@ struct ContentView: View {
                     label: { EmptyView() }
                 )
                 .pickerStyle(.segmented)
-                .disabled(self.isProcessing || self.fetcher == nil)
+                .disabled(self.isProcessing || self.fetcher == nil || self.error != nil)
                 .onChange(of: self.elevation, {
                     self.isProcessing = true
                     DispatchQueue.global(qos: .userInitiated).async(execute: {
                         defer { self.isProcessing = false }
                         
                         self.cleanup()
-                        self.display()
+                        do { try self.display() } catch { self.error = error }
                     })
                 })
             })
@@ -164,7 +177,7 @@ struct ContentView: View {
                         "Layers",
                         systemImage: self.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
                     )
-                }).disabled(self.isProcessing || self.fetcher == nil)
+                }).disabled(self.isProcessing || self.fetcher == nil || self.error != nil)
             })
             
             ToolbarItem(content: {
@@ -180,31 +193,32 @@ struct ContentView: View {
 
 
 extension ContentView {
-    func open(map: URL) {
+    func open(map: URL) throws {
         self.isProcessing = true
         
         defer {
             // escape current runloop for updated @State
             DispatchQueue.main.async(execute: {
                 self.isProcessing = false
-                self.parse()
+                do { try self.parse() } catch { self.error = error }
             })
         }
         
         var root = map.deletingLastPathComponent()
-        assert(root.lastPathComponent == "MAPS")
+        guard root.lastPathComponent == "MAPS" else { throw Error.path }
+        
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
-        self.renderer = .init(
-            cache: .init(fetcher: self.fetcher!),
+        self.renderer = try .init(
+            cache: try .init(fetcher: self.fetcher!),
             layers: self.layers
         )
     }
 }
 
 extension ContentView {
-    func parse() {
+    func parse() throws {
         self.isProcessing = true
         
         defer {
@@ -218,36 +232,40 @@ extension ContentView {
         var fetchers = yc_res_map_parse_db_api_t(
             context: withUnsafeMutablePointer(to: &fetcher, { $0 })
         ) { pid, result, ctx in
-                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_MAP_STATUS_CORR }
-                
-                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
-                let type = parsed.object.pointee.data.item.pointee.type
-                
-                yc_res_pro_object_invalidate(parsed.object)
-                parsed.object.deallocate()
-                
-                result?.pointee = type
-                return YC_RES_MAP_STATUS_OK
-            } scenery_type_from_pid: { pid, result, ctx in
-                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_MAP_STATUS_CORR }
-                
-                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
-                let type = parsed.object.pointee.data.scenery.pointee.type
-                
-                yc_res_pro_object_invalidate(parsed.object)
-                parsed.object.deallocate()
-                
-                result?.pointee = type
-                return YC_RES_MAP_STATUS_OK
-            }
+            guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
+            else { return YC_RES_MAP_STATUS_CORR }
+            
+            guard let parsed = try? fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
+            else { return YC_RES_MAP_STATUS_CORR }
+                    
+            let type = parsed.object.pointee.data.item.pointee.type
+            
+            yc_res_pro_object_invalidate(parsed.object)
+            parsed.object.deallocate()
+            
+            result?.pointee = type
+            return YC_RES_MAP_STATUS_OK
+        } scenery_type_from_pid: { pid, result, ctx in
+            guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
+            else { return YC_RES_MAP_STATUS_CORR }
+            
+            guard let parsed = try? fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
+            else { return  YC_RES_MAP_STATUS_CORR }
+            
+            let type = parsed.object.pointee.data.scenery.pointee.type
+            
+            yc_res_pro_object_invalidate(parsed.object)
+            parsed.object.deallocate()
+            
+            result?.pointee = type
+            return YC_RES_MAP_STATUS_OK
+        }
         
         
         var result = yc_res_map_parse_result_t(map: nil)
         let status = yc_res_map_parse(self.fetcher!.map.path, &io_fs_api, &fetchers, &result)
         
-        assert(status == YC_RES_MAP_STATUS_OK)
+        guard status == YC_RES_MAP_STATUS_OK else { throw Error.parsing }
         
         self.map = result.map.pointee
     }
@@ -269,7 +287,7 @@ extension ContentView {
 }
 
 extension ContentView {
-    func display() {
+    func display() throws {
         self.isProcessing = true
         defer { self.isProcessing = false }
         
@@ -288,7 +306,7 @@ extension ContentView {
             &tmp
         )
         
-        assert(status == YC_VID_STATUS_OK)
+        guard status == YC_VID_STATUS_OK else { throw Error.parsing }
 
         var seconds = yc_vid_time_seconds(value: 0, scale: self.view.time.scale)
         let tick_status = yc_vid_view_frame_tick(
@@ -297,7 +315,7 @@ extension ContentView {
             &seconds
         )
         
-        assert(YC_VID_STATUS_OK == tick_status)
+        guard tick_status == YC_VID_STATUS_OK else { throw Error.parsing }
         
         renderer.render()
     }
@@ -312,7 +330,7 @@ extension ContentView {
         guard var callbacks = self.renderer?.callbacks else { return }
         
         var tmp = yc_vid_renderer_t(
-            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            context: withUnsafeMutablePointer(to: &context, { $0 }),
             texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
         )
         
