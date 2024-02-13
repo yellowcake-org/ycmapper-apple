@@ -215,7 +215,9 @@ extension ContentView {
         guard var fetcher = self.fetcher
         else { return }
                 
-        var fetchers = yc_res_map_parse_db_api_t(context: &fetcher) { pid, result, ctx in
+        var fetchers = yc_res_map_parse_db_api_t(
+            context: withUnsafeMutablePointer(to: &fetcher, { $0 })
+        ) { pid, result, ctx in
                 guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
                 else { return YC_RES_MAP_STATUS_CORR }
                 
@@ -276,8 +278,8 @@ extension ContentView {
         guard var callbacks = self.renderer?.callbacks else { return }
         
         var tmp = yc_vid_renderer_t(
-            context: &renderer,
-            texture: &callbacks
+            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
         )
         
         let status = yc_vid_view_initialize(
@@ -310,8 +312,8 @@ extension ContentView {
         guard var callbacks = self.renderer?.callbacks else { return }
         
         var tmp = yc_vid_renderer_t(
-            context: &context,
-            texture: &callbacks
+            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
         )
         
         yc_vid_view_invalidate(&self.view, &tmp)
