@@ -8,6 +8,10 @@
 import Foundation
 
 class Cache {
+    enum Error: Swift.Error {
+        case palette
+    }
+    
     public let fetcher: Fetcher
     
     private var sprites: [UInt32 : Sprite] = .init()
@@ -17,7 +21,7 @@ class Cache {
         self.palette.colors.deallocate()
     }
     
-    init(fetcher: Fetcher) {
+    init(fetcher: Fetcher) throws {
         self.fetcher = fetcher
         
         let status = yc_res_pal_parse(
@@ -26,7 +30,7 @@ class Cache {
             &self.palette
         )
         
-        assert(YC_RES_PAL_STATUS_OK == status)
+        guard status == YC_RES_PAL_STATUS_OK else { throw Error.palette }
     }
 }
 

@@ -10,6 +10,10 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct ContentView: View {
+    enum Error: Swift.Error {
+        case path, parsing, rendering
+    }
+    
     struct Elevation: Hashable, Equatable, Identifiable {
         static let empty = Self.init(idx: 0, ptr: nil)
         let id: UUID = .init()
@@ -20,6 +24,9 @@ struct ContentView: View {
         var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
         var systemImage: String { self.ptr == nil ? "circle.dashed" : "\(self.idx + 1).circle" }
     }
+    
+    @State
+    private var error: Swift.Error?
     
     @State
     private var document = ImageDocument(image: nil)
@@ -99,7 +106,7 @@ struct ContentView: View {
             allowsMultipleSelection: false,
             onCompletion: { result in
                 switch result {
-                case .success(let urls): self.open(map: urls.first!)
+                case .success(let urls): do { try self.open(map: urls.first!) } catch { self.error = error }
                 default: ()
                 }
             }
@@ -133,7 +140,7 @@ struct ContentView: View {
                         defer { self.isProcessing = false }
                         
                         self.cleanup()
-                        self.display()
+                        do { try self.display() } catch { self.error = error }
                     })
                 })
             })
@@ -180,31 +187,32 @@ struct ContentView: View {
 
 
 extension ContentView {
-    func open(map: URL) {
+    func open(map: URL) throws {
         self.isProcessing = true
         
         defer {
             // escape current runloop for updated @State
             DispatchQueue.main.async(execute: {
                 self.isProcessing = false
-                self.parse()
+                do { try self.parse() } catch { self.error = error }
             })
         }
         
         var root = map.deletingLastPathComponent()
-        assert(root.lastPathComponent == "MAPS")
+        guard root.lastPathComponent == "MAPS" else { throw Error.path }
+        
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
-        self.renderer = .init(
-            cache: .init(fetcher: self.fetcher!),
+        self.renderer = try .init(
+            cache: try .init(fetcher: self.fetcher!),
             layers: self.layers
         )
     }
 }
 
 extension ContentView {
-    func parse() {
+    func parse() throws {
         self.isProcessing = true
         
         defer {
@@ -247,7 +255,7 @@ extension ContentView {
         var result = yc_res_map_parse_result_t(map: nil)
         let status = yc_res_map_parse(self.fetcher!.map.path, &io_fs_api, &fetchers, &result)
         
-        assert(status == YC_RES_MAP_STATUS_OK)
+        guard status == YC_RES_MAP_STATUS_OK else { throw Error.parsing }
         
         self.map = result.map.pointee
     }
@@ -269,7 +277,7 @@ extension ContentView {
 }
 
 extension ContentView {
-    func display() {
+    func display() throws {
         self.isProcessing = true
         defer { self.isProcessing = false }
         
@@ -288,7 +296,7 @@ extension ContentView {
             &tmp
         )
         
-        assert(status == YC_VID_STATUS_OK)
+        guard status == YC_VID_STATUS_OK else { throw Error.parsing }
 
         var seconds = yc_vid_time_seconds(value: 0, scale: self.view.time.scale)
         let tick_status = yc_vid_view_frame_tick(
@@ -297,7 +305,7 @@ extension ContentView {
             &seconds
         )
         
-        assert(YC_VID_STATUS_OK == tick_status)
+        guard tick_status == YC_VID_STATUS_OK else { throw Error.parsing }
         
         renderer.render()
     }
@@ -312,7 +320,7 @@ extension ContentView {
         guard var callbacks = self.renderer?.callbacks else { return }
         
         var tmp = yc_vid_renderer_t(
-            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            context: withUnsafeMutablePointer(to: &context, { $0 }),
             texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
         )
         

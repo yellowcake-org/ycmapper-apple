@@ -33,7 +33,7 @@ class BitmapRenderer: ObservableObject {
         return ctx
     }()
     
-    init(cache: Cache, layers: [Bool]) {
+    init(cache: Cache, layers: [Bool]) throws {
         self.cache = cache
         self.layers = layers
         
