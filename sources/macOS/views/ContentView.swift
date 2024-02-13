@@ -226,30 +226,34 @@ extension ContentView {
         var fetchers = yc_res_map_parse_db_api_t(
             context: withUnsafeMutablePointer(to: &fetcher, { $0 })
         ) { pid, result, ctx in
-                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_MAP_STATUS_CORR }
-                
-                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
-                let type = parsed.object.pointee.data.item.pointee.type
-                
-                yc_res_pro_object_invalidate(parsed.object)
-                parsed.object.deallocate()
-                
-                result?.pointee = type
-                return YC_RES_MAP_STATUS_OK
-            } scenery_type_from_pid: { pid, result, ctx in
-                guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
-                else { return YC_RES_MAP_STATUS_CORR }
-                
-                let parsed = fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
-                let type = parsed.object.pointee.data.scenery.pointee.type
-                
-                yc_res_pro_object_invalidate(parsed.object)
-                parsed.object.deallocate()
-                
-                result?.pointee = type
-                return YC_RES_MAP_STATUS_OK
-            }
+            guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
+            else { return YC_RES_MAP_STATUS_CORR }
+            
+            guard let parsed = try? fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_ITEM)
+            else { return YC_RES_MAP_STATUS_CORR }
+                    
+            let type = parsed.object.pointee.data.item.pointee.type
+            
+            yc_res_pro_object_invalidate(parsed.object)
+            parsed.object.deallocate()
+            
+            result?.pointee = type
+            return YC_RES_MAP_STATUS_OK
+        } scenery_type_from_pid: { pid, result, ctx in
+            guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
+            else { return YC_RES_MAP_STATUS_CORR }
+            
+            guard let parsed = try? fetcher.prototype(identifier: pid, for: YC_RES_PRO_OBJECT_TYPE_SCENERY)
+            else { return  YC_RES_MAP_STATUS_CORR }
+            
+            let type = parsed.object.pointee.data.scenery.pointee.type
+            
+            yc_res_pro_object_invalidate(parsed.object)
+            parsed.object.deallocate()
+            
+            result?.pointee = type
+            return YC_RES_MAP_STATUS_OK
+        }
         
         
         var result = yc_res_map_parse_result_t(map: nil)

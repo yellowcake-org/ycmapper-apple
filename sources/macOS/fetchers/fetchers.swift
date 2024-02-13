@@ -8,6 +8,10 @@
 import Foundation
 
 public class Fetcher {
+    public enum Error: Swift.Error {
+        case palette, index, proto, sprite, merge, recursion
+    }
+    
     public let map: URL
     public let root: URL
     
@@ -18,7 +22,7 @@ public class Fetcher {
     
     public func sprite(
         fid: UInt32
-    ) -> (yc_res_frm_parse_result_t, yc_res_pal_parse_result_t?) {
+    ) throws -> (yc_res_frm_parse_result_t, yc_res_pal_parse_result_t?) {
         var frm_result = yc_res_frm_parse_result_t()
         var pal_result: yc_res_pal_parse_result_t? = nil
         
@@ -47,8 +51,8 @@ public class Fetcher {
             var palette = yc_res_pal_parse_result_t()
             let pal_status = yc_res_pal_parse(pal_filename, &io_fs_api, &palette)
             
-            assert(YC_RES_PAL_STATUS_OK == pal_status)
-            
+            guard pal_status == YC_RES_PAL_STATUS_OK else { throw Error.palette }
+
             pal_result = palette
         }
         
@@ -72,16 +76,15 @@ public class Fetcher {
             &lst_result
         )
         
-        assert(lst_status == YC_RES_LST_STATUS_OK)
-        
+        guard lst_status == YC_RES_LST_STATUS_OK else { throw Error.index }
         let entries = Array(UnsafeBufferPointer(start: lst_result.pointers, count: lst_result.count))
         
         if type == YC_RES_PRO_OBJECT_TYPE_CRITTER {
-            func load(index: UInt32, recursed: Bool) {
+            func load(index: UInt32, recursed: Bool) throws {
                 var suffix_ptr: UnsafeMutablePointer<UInt8>? = nil
                 
                 let pro_status = yc_res_pro_critter_sprite_suffix_from(fid, &suffix_ptr)
-                assert(YC_RES_PRO_STATUS_OK == pro_status)
+                guard pro_status == YC_RES_PRO_STATUS_OK else { throw Error.index }
                 
                 let suffix: String = suffix_ptr.flatMap({ String(cString: $0) }) ?? ""
                 suffix_ptr?.deallocate()
@@ -103,7 +106,7 @@ public class Fetcher {
                             frm_complete_path, &io_fs_api, &split[Int(idx)]
                         )
                         
-                        assert(YC_RES_FRM_STATUS_OK == frm_status)
+                        guard frm_status == YC_RES_FRM_STATUS_OK else { throw Error.sprite }
                     }
                     
                     var ptrs = split.map({ $0.sprite })
@@ -112,8 +115,8 @@ public class Fetcher {
                         Int(YC_RES_MATH_ORIENTATION_COUNT.rawValue)
                     )
                     
-                    assert(YC_RES_FRM_STATUS_OK == merge_status)
-                    assert(ptrs.count == 1)
+                    guard merge_status == YC_RES_FRM_STATUS_OK else { throw Error.merge }
+                    guard ptrs.count == 1 else { throw Error.merge }
                     
                     frm_result.sprite = ptrs.first!
                 } else {
@@ -121,18 +124,18 @@ public class Fetcher {
                     let frm_status = yc_res_frm_parse(frm_complete_path, &io_fs_api, &frm_result)
                     
                     if YC_RES_FRM_STATUS_OK != frm_status {
-                        if recursed { assertionFailure() }
-                        else { load(index: entry.index, recursed: true) }
+                        if recursed { throw Error.recursion }
+                        else { try load(index: entry.index, recursed: true) }
                     }
                 }
             }
             
-            load(index: UInt32(index), recursed: false)
+            try load(index: UInt32(index), recursed: false)
         } else {
             let frm_complete_path = filepath.appending(path: String(cString: entries[Int(index)].value)).path
             let frm_status = yc_res_frm_parse(frm_complete_path, &io_fs_api, &frm_result)
             
-            assert(frm_status == YC_RES_FRM_STATUS_OK)
+            guard frm_status == YC_RES_FRM_STATUS_OK else { throw Error.sprite }
         }
         
         for var entry in entries { yc_res_lst_invalidate(&entry) }
@@ -141,7 +144,7 @@ public class Fetcher {
         return (frm_result, pal_result)
     }
     
-    public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) -> yc_res_pro_parse_result_t {
+    public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) throws -> yc_res_pro_parse_result_t {
         let subpath = switch type {
         case YC_RES_PRO_OBJECT_TYPE_TILE: "PROTO/TILES/"
         case YC_RES_PRO_OBJECT_TYPE_ITEM: "PROTO/ITEMS/"
@@ -161,7 +164,7 @@ public class Fetcher {
             self.root.appending(path: subpath.appending(filename)).path, &io_fs_api, &lst_result
         )
         
-        assert(lst_status == YC_RES_LST_STATUS_OK)
+        guard lst_status == YC_RES_LST_STATUS_OK else { throw Error.index }
         
         let index = yc_res_pro_index_from_object_id(pid) - 1
         let entries = Array(UnsafeBufferPointer(start: lst_result.pointers, count: lst_result.count))
@@ -176,7 +179,7 @@ public class Fetcher {
         var pro_result = yc_res_pro_parse_result_t(object: nil)
         let pro_status = yc_res_pro_parse(pro_filename, &io_fs_api, &pro_result)
         
-        assert(pro_status == YC_RES_PRO_STATUS_OK)
+        guard pro_status == YC_RES_PRO_STATUS_OK else { throw Error.proto }
         
         return pro_result
     }
