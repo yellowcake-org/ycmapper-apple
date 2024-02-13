@@ -109,9 +109,8 @@ extension BitmapRenderer {
         imprint(values: others.sorted(by: compare(lhs:rhs:)))
         imprint(values: roofs)
                 
-        DispatchQueue.main.async(execute: {
-            self.canvas = .init(cgImage: ctx.makeImage()!, size: .init(width: ctx.width, height: ctx.height))
-        })
+        let image = NSImage(cgImage: ctx.makeImage()!, size: .init(width: ctx.width, height: ctx.height))
+        DispatchQueue.main.async(execute: { self.canvas = image })
     }
     
     func invalidate(fully: Bool = false) {

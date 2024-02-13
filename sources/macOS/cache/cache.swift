@@ -22,7 +22,7 @@ class Cache {
         
         let status = yc_res_pal_parse(
             self.fetcher.root.appending(path: "COLOR.PAL").path,
-            withUnsafePointer(to: io_fs_api, { $0 }),
+            &io_fs_api,
             &self.palette
         )
         

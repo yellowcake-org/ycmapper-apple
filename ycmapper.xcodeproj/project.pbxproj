@@ -180,21 +180,21 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = CA8F2F20C1CD4EBD8B776BD0;
+			remoteGlobalIDString = 9038170C5CF845DDA1D96A00;
 			remoteInfo = ycenv;
 		};
 		B49D32582B03EF3100DBB05B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8E9A62EF091D43329A32F011;
+			remoteGlobalIDString = 4402AE9600F24D28B7F61E6D;
 			remoteInfo = ycres;
 		};
 		B49D325A2B03EF3100DBB05B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D4ADC76CEFC74C6C92B9062D;
+			remoteGlobalIDString = 63293461786B4BF0B377BB5D;
 			remoteInfo = ycvid;
 		};
 /* End PBXContainerItemProxy section */
@@ -659,7 +659,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ONLY_ACTIVE_ARCH = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};

@@ -74,7 +74,7 @@ struct ContentView: View {
                 })
                 .padding()
             } else {
-                if self.elevation.ptr == nil {
+                if self.elevation.ptr == nil && !self.isProcessing {
                     ContentUnavailableView(
                         "Empty elevation",
                         systemImage: "rectangle.dashed", // "pencil.slash"
@@ -184,8 +184,11 @@ extension ContentView {
         self.isProcessing = true
         
         defer {
-            self.isProcessing = false
-            self.parse()
+            // escape current runloop for updated @State
+            DispatchQueue.main.async(execute: {
+                self.isProcessing = false
+                self.parse()
+            })
         }
         
         var root = map.deletingLastPathComponent()
@@ -209,11 +212,12 @@ extension ContentView {
             self.load()
         }
         
-        guard let fetcher = self.fetcher
+        guard var fetcher = self.fetcher
         else { return }
                 
         var fetchers = yc_res_map_parse_db_api_t(
-            context: withUnsafePointer(to: fetcher, { $0 })) { pid, result, ctx in
+            context: withUnsafeMutablePointer(to: &fetcher, { $0 })
+        ) { pid, result, ctx in
                 guard let fetcher = ctx?.assumingMemoryBound(to: Fetcher.self).pointee
                 else { return YC_RES_MAP_STATUS_CORR }
                 
@@ -241,7 +245,7 @@ extension ContentView {
         
         
         var result = yc_res_map_parse_result_t(map: nil)
-        let status = yc_res_map_parse(fetcher.map.path, withUnsafePointer(to: io_fs_api, { $0 }), &fetchers, &result)
+        let status = yc_res_map_parse(self.fetcher!.map.path, &io_fs_api, &fetchers, &result)
         
         assert(status == YC_RES_MAP_STATUS_OK)
         
@@ -270,10 +274,12 @@ extension ContentView {
         defer { self.isProcessing = false }
         
         guard self.elevation.ptr != nil else { return }
+        guard var renderer = self.renderer else { return }
+        guard var callbacks = self.renderer?.callbacks else { return }
         
         var tmp = yc_vid_renderer_t(
-            context: withUnsafeMutablePointer(to: &self.renderer!, { $0 }),
-            texture: withUnsafeMutablePointer(to: &self.renderer!.callbacks, { $0 })
+            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
         )
         
         let status = yc_vid_view_initialize(
@@ -293,7 +299,7 @@ extension ContentView {
         
         assert(YC_VID_STATUS_OK == tick_status)
         
-        self.renderer!.render()
+        renderer.render()
     }
 }
 
@@ -302,14 +308,15 @@ extension ContentView {
         self.isProcessing = true
         defer { self.isProcessing = false }
         
-        if var renderer = self.renderer {
-            var tmp = yc_vid_renderer_t(
-                context: withUnsafeMutablePointer(to: &renderer, { $0 }),
-                texture: withUnsafeMutablePointer(to: &renderer.callbacks, { $0 })
-            )
-            
-            yc_vid_view_invalidate(&self.view, &tmp)
-        }
+        guard var context = self.renderer else { return }
+        guard var callbacks = self.renderer?.callbacks else { return }
+        
+        var tmp = yc_vid_renderer_t(
+            context: withUnsafeMutablePointer(to: &renderer, { $0 }),
+            texture: withUnsafeMutablePointer(to: &callbacks, { $0 })
+        )
+        
+        yc_vid_view_invalidate(&self.view, &tmp)
     }
 }
 

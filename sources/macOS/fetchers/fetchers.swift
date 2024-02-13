@@ -45,7 +45,7 @@ public class Fetcher {
         
         if FileManager.default.fileExists(atPath: pal_filename) {
             var palette = yc_res_pal_parse_result_t()
-            let pal_status = yc_res_pal_parse(pal_filename, withUnsafePointer(to: io_fs_api, { $0 }), &palette)
+            let pal_status = yc_res_pal_parse(pal_filename, &io_fs_api, &palette)
             
             assert(YC_RES_PAL_STATUS_OK == pal_status)
             
@@ -68,7 +68,7 @@ public class Fetcher {
         
         var lst_result = yc_res_lst_entries_t()
         let lst_status = yc_res_lst_parse(
-            self.root.appending(path: subpath.appending(lst_filename)).path, withUnsafePointer(to: io_fs_api, { $0 }),
+            self.root.appending(path: subpath.appending(lst_filename)).path, &io_fs_api,
             &lst_result
         )
         
@@ -80,7 +80,7 @@ public class Fetcher {
             func load(index: UInt32, recursed: Bool) {
                 var suffix_ptr: UnsafeMutablePointer<UInt8>? = nil
                 
-                let pro_status = yc_res_pro_critter_sprite_suffix_from(fid, withUnsafeMutablePointer(to: &suffix_ptr, { $0 }))
+                let pro_status = yc_res_pro_critter_sprite_suffix_from(fid, &suffix_ptr)
                 assert(YC_RES_PRO_STATUS_OK == pro_status)
                 
                 let suffix: String = suffix_ptr.flatMap({ String(cString: $0) }) ?? ""
@@ -100,7 +100,7 @@ public class Fetcher {
                         let frm_complete_path = frm_filename.appendingPathExtension("FR\(idx)").path
                         
                         let frm_status = yc_res_frm_parse(
-                            frm_complete_path, withUnsafePointer(to: io_fs_api, { $0 }), &split[Int(idx)]
+                            frm_complete_path, &io_fs_api, &split[Int(idx)]
                         )
                         
                         assert(YC_RES_FRM_STATUS_OK == frm_status)
@@ -108,7 +108,7 @@ public class Fetcher {
                     
                     var ptrs = split.map({ $0.sprite })
                     let merge_status = yc_res_frm_merge(
-                        ptrs.withUnsafeMutableBufferPointer({ $0.baseAddress }),
+                        ptrs.withUnsafeMutableBufferPointer({ $0 }).baseAddress,
                         Int(YC_RES_MATH_ORIENTATION_COUNT.rawValue)
                     )
                     
@@ -118,7 +118,7 @@ public class Fetcher {
                     frm_result.sprite = ptrs.first!
                 } else {
                     let frm_complete_path = frm_filename.appendingPathExtension("FRM").path
-                    let frm_status = yc_res_frm_parse(frm_complete_path, withUnsafePointer(to: io_fs_api, { $0 }), &frm_result)
+                    let frm_status = yc_res_frm_parse(frm_complete_path, &io_fs_api, &frm_result)
                     
                     if YC_RES_FRM_STATUS_OK != frm_status {
                         if recursed { assertionFailure() }
@@ -130,7 +130,7 @@ public class Fetcher {
             load(index: UInt32(index), recursed: false)
         } else {
             let frm_complete_path = filepath.appending(path: String(cString: entries[Int(index)].value)).path
-            let frm_status = yc_res_frm_parse(frm_complete_path, withUnsafePointer(to: io_fs_api, { $0 }), &frm_result)
+            let frm_status = yc_res_frm_parse(frm_complete_path, &io_fs_api, &frm_result)
             
             assert(frm_status == YC_RES_FRM_STATUS_OK)
         }
@@ -158,7 +158,7 @@ public class Fetcher {
         
         var lst_result = yc_res_lst_entries_t()
         let lst_status = yc_res_lst_parse(
-            self.root.appending(path: subpath.appending(filename)).path, withUnsafePointer(to: io_fs_api, { $0 }), &lst_result
+            self.root.appending(path: subpath.appending(filename)).path, &io_fs_api, &lst_result
         )
         
         assert(lst_status == YC_RES_LST_STATUS_OK)
@@ -174,7 +174,7 @@ public class Fetcher {
         lst_result.pointers.deallocate()
         
         var pro_result = yc_res_pro_parse_result_t(object: nil)
-        let pro_status = yc_res_pro_parse(pro_filename, withUnsafePointer(to: io_fs_api, { $0 }), &pro_result)
+        let pro_status = yc_res_pro_parse(pro_filename, &io_fs_api, &pro_result)
         
         assert(pro_status == YC_RES_PRO_STATUS_OK)
         
