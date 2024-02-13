@@ -84,8 +84,14 @@ struct ContentView: View {
                 if self.elevation.ptr == nil && !self.isProcessing {
                     ContentUnavailableView(
                         "Empty elevation",
-                        systemImage: "rectangle.dashed", // "pencil.slash"
+                        systemImage: "rectangle.dashed",
                         description: Text("Selected elevation has no content.")
+                    )
+                } else if let _ = self.error {
+                    ContentUnavailableView(
+                        "Couldn't load",
+                        systemImage: "xmark.rectangle",
+                        description: Text("Please, check path to the file and if all resources are in place.")
                     )
                 } else {
                     if let canvas = self.renderer?.canvas {
@@ -133,7 +139,7 @@ struct ContentView: View {
                     label: { EmptyView() }
                 )
                 .pickerStyle(.segmented)
-                .disabled(self.isProcessing || self.fetcher == nil)
+                .disabled(self.isProcessing || self.fetcher == nil || self.error != nil)
                 .onChange(of: self.elevation, {
                     self.isProcessing = true
                     DispatchQueue.global(qos: .userInitiated).async(execute: {
@@ -171,7 +177,7 @@ struct ContentView: View {
                         "Layers",
                         systemImage: self.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
                     )
-                }).disabled(self.isProcessing || self.fetcher == nil)
+                }).disabled(self.isProcessing || self.fetcher == nil || self.error != nil)
             })
             
             ToolbarItem(content: {
