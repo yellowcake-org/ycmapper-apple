@@ -23,8 +23,10 @@ struct ImageDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        return FileWrapper(regularFileWithContents: NSBitmapImageRep(data: image!.tiffRepresentation!)!.representation(using: .png, properties: [:])!
-        )
+        let representation = NSBitmapImageRep(data: self.image!.tiffRepresentation!)!
+        let contents = representation.representation(using: .png, properties: [:])!
+        
+        return FileWrapper(regularFileWithContents: contents)
     }
     
 }
