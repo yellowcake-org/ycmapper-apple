@@ -1,0 +1,165 @@
+//
+//  MapView.swift
+//  ycmapper
+//
+//  Created by Alexander Orlov on 14.11.2023.
+//
+
+import SwiftUI
+
+struct MapView: View {
+    @StateObject
+    var model: Model = .init()
+    
+    var body: some View {
+        ZStack(content: {
+            if !self.model.state.hasOpenedMap {
+                self.welcome()
+            } else {
+                if self.model.elevation.ptr == nil && !self.model.state.isProcessing {
+                    self.empty()
+                } else if let _ = self.model.error {
+                    self.error()
+                } else {
+                    if let canvas = self.model.renderer?.canvas { self.content(canvas: canvas) }
+                }
+            }
+        })
+        .navigationTitle(Text(self.model.title ?? ""))
+        .fileImporter(
+            isPresented: self.$model.state.isImporting,
+            allowedContentTypes: self.model.types,
+            allowsMultipleSelection: false,
+            onCompletion: {
+                if case let .success(urls) = $0 {
+                    do { try self.model.open(map: urls.first!) } catch { self.model.error = error }
+                }
+            }
+        )
+        .fileExporter(
+            isPresented: self.$model.state.isExporting,
+            document: self.model.document,
+            contentType: type(of: self.model.document).writableContentTypes.first!,
+            defaultFilename: self.model.exportName,
+            onCompletion: { _ in }
+        )
+        .toolbar(content: {
+            ToolbarItem(placement: .navigation, content: {
+                Picker(
+                    selection: self.$model.elevation,
+                    content: {
+                        ForEach(self.model.elevations, content: {
+                            Label(
+                                $0.title,
+                                systemImage: $0.systemImage
+                            ).tag($0)
+                        })
+                    },
+                    label: { EmptyView() }
+                )
+                .pickerStyle(.segmented)
+                .disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
+                .onChange(of: self.model.elevation, {
+                    DispatchQueue.main.async(execute: { self.model.state.isProcessing = true })
+                    
+                    DispatchQueue.global(qos: .userInitiated).async(execute: {
+                        defer { DispatchQueue.main.async(execute: { self.model.state.isProcessing = false }) }
+                        
+                        self.model.cleanup()
+                        do { try self.model.display() } catch { self.model.error = error }
+                    })
+                })
+            })
+            
+            ToolbarItem(content: {
+                if self.model.state.isProcessing { ProgressView().progressViewStyle(.circular).scaleEffect(0.6) }
+            })
+            
+            ToolbarItem(content: {
+                Menu(content: {
+                    ForEach(Array(self.model.layers.enumerated()), id: \.offset, content: { (index, _) in
+                        Button(action: {
+                            var layers = self.model.layers
+                            layers[index].toggle()
+                            
+                            self.model.layers = layers
+                        }, label: {
+                            HStack(content: {
+                                self.model.layers[index] ?
+                                Image(systemName: "checkmark.circle") :
+                                Image(systemName: "circle.dotted")
+                                
+                                Text(yc_vid_texture_order_t(rawValue: UInt32(index)).title())
+                            })
+                        })
+                    })
+                }, label: {
+                    Label(
+                        "Layers",
+                        systemImage: self.model.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
+                    )
+                }).disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
+            })
+            
+            ToolbarItem(content: {
+                Button("Export", systemImage: "square.and.arrow.up", action: {
+                    self.model.document = .init(image: self.model.renderer!.canvas!)
+                    self.model.state.isExporting.toggle()
+                }).disabled(self.model.state.isProcessing || self.model.renderer?.canvas == nil)
+            })
+        })
+        .onDisappear(perform: { self.model.invalidate() })
+    }
+    
+    @ViewBuilder
+    private func error() -> some View {
+        ContentUnavailableView(
+            "Couldn't load",
+            systemImage: "xmark.rectangle",
+            description: Text("Please, check path to the file and if all resources are in place.")
+        )
+    }
+    
+    @ViewBuilder
+    private func empty() -> some View {
+        ContentUnavailableView(
+            "Empty elevation",
+            systemImage: "rectangle.dashed",
+            description: Text("Selected elevation has no content.")
+        )
+    }
+    
+    @ViewBuilder
+    private func welcome() -> some View {
+        Button(
+            action: { self.model.state.isImporting.toggle() },
+            label: { Text("Open map") }
+        ).padding()
+    }
+    
+    @ViewBuilder
+    private func content(canvas: NSImage) -> some View {
+        GeometryReader { proxy in
+            ScrollView(
+                [.horizontal, .vertical],
+                content: { Image(nsImage: canvas) }
+            ).frame(width: proxy.size.width, height: proxy.size.height)
+        }
+    }
+}
+
+extension yc_vid_texture_order_t {
+    func title() -> String {
+        switch self.rawValue {
+        case YC_VID_TEXTURE_ORDER_FLOOR.rawValue: return "Floor"
+        case YC_VID_TEXTURE_ORDER_FLAT.rawValue: return "Flats"
+        case YC_VID_TEXTURE_ORDER_WALL.rawValue: return "Walls"
+        case YC_VID_TEXTURE_ORDER_SCENERY.rawValue: return "Scenery"
+        case YC_VID_TEXTURE_ORDER_MISC.rawValue: return "Miscellanea"
+        case YC_VID_TEXTURE_ORDER_ITEM.rawValue: return "Items"
+        case YC_VID_TEXTURE_ORDER_CRITTER.rawValue: return "Critters"
+        case YC_VID_TEXTURE_ORDER_ROOF.rawValue: return "Roofs"
+        default: return "Unknown"
+        }
+    }
+}

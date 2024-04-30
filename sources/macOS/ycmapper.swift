@@ -8,10 +8,4 @@
 import SwiftUI
 
 @main
-struct ycmapper: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
+struct ycmapper: App { var body: some Scene { WindowGroup { MapView() } } }
