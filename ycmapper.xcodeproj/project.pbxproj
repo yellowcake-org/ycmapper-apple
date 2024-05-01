@@ -19,6 +19,7 @@
 		B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302A2B03EC5900DBB05B /* ycmapper.swift */; };
 		B49D302D2B03EC5900DBB05B /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49D302B2B03EC5900DBB05B /* MapView.swift */; };
 		B4ED1BFB2BE13F3F00942576 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ED1BFA2BE13F3F00942576 /* MapViewModel.swift */; };
+		B4ED1BFD2BE16BD300942576 /* map.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ED1BFC2BE16BD300942576 /* map.swift */; };
 		B4F03C022B17A3FE00BD6449 /* image.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F03C012B17A3FE00BD6449 /* image.swift */; };
 /* End PBXBuildFile section */
 
@@ -213,6 +214,7 @@
 		B49D30CF2B03ECDE00DBB05B /* libycvid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = libycvid.xcodeproj; sourceTree = "<group>"; };
 		B49D32612B03F29D00DBB05B /* imports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = imports.h; sourceTree = "<group>"; };
 		B4ED1BFA2BE13F3F00942576 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		B4ED1BFC2BE16BD300942576 /* map.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = map.swift; sourceTree = "<group>"; };
 		B4F03C012B17A3FE00BD6449 /* image.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = image.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -394,6 +396,7 @@
 			isa = PBXGroup;
 			children = (
 				B4F03C012B17A3FE00BD6449 /* image.swift */,
+				B4ED1BFC2BE16BD300942576 /* map.swift */,
 			);
 			path = document;
 			sourceTree = "<group>";
@@ -643,6 +646,7 @@
 				B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */,
 				B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */,
 				B4F03C022B17A3FE00BD6449 /* image.swift in Sources */,
+				B4ED1BFD2BE16BD300942576 /* map.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

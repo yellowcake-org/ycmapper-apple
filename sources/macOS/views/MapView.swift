@@ -16,7 +16,7 @@ struct MapView: View {
             if !self.model.state.hasOpenedMap {
                 self.welcome()
             } else {
-                if self.model.elevation.ptr == nil && !self.model.state.isProcessing {
+                if self.model.elevation.isEmpty && !self.model.state.isProcessing {
                     self.empty()
                 } else if let _ = self.model.error {
                     self.error()
@@ -25,90 +25,27 @@ struct MapView: View {
                 }
             }
         })
+        .onDisappear(perform: { self.model.invalidate() })
         .navigationTitle(Text(self.model.title ?? ""))
+        .toolbar(content: {
+            self.levels()
+            self.loader()
+            self.layers()
+            self.sheet()
+        })
         .fileImporter(
             isPresented: self.$model.state.isImporting,
-            allowedContentTypes: self.model.types,
+            allowedContentTypes: MapDocument.readableContentTypes,
             allowsMultipleSelection: false,
-            onCompletion: {
-                if case let .success(urls) = $0 {
-                    do { try self.model.open(map: urls.first!) } catch { self.model.error = error }
-                }
-            }
+            onCompletion: { if case let .success(urls) = $0 { self.model.open(map: urls.first!) } }
         )
         .fileExporter(
             isPresented: self.$model.state.isExporting,
-            document: self.model.document,
-            contentType: type(of: self.model.document).writableContentTypes.first!,
-            defaultFilename: self.model.exportName,
+            document: self.model.export.document,
+            contentType: ImageDocument.writableContentTypes.first!,
+            defaultFilename: self.model.export.filename,
             onCompletion: { _ in }
         )
-        .toolbar(content: {
-            ToolbarItem(placement: .navigation, content: {
-                Picker(
-                    selection: self.$model.elevation,
-                    content: {
-                        ForEach(self.model.elevations, content: {
-                            Label(
-                                $0.title,
-                                systemImage: $0.systemImage
-                            ).tag($0)
-                        })
-                    },
-                    label: { EmptyView() }
-                )
-                .pickerStyle(.segmented)
-                .disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
-                .onChange(of: self.model.elevation, {
-                    DispatchQueue.main.async(execute: { self.model.state.isProcessing = true })
-                    
-                    DispatchQueue.global(qos: .userInitiated).async(execute: {
-                        defer { DispatchQueue.main.async(execute: { self.model.state.isProcessing = false }) }
-                        
-                        self.model.cleanup()
-                        do { try self.model.display() } catch { self.model.error = error }
-                    })
-                })
-            })
-            
-            ToolbarItem(content: {
-                if self.model.state.isProcessing { ProgressView().progressViewStyle(.circular).scaleEffect(0.6) }
-            })
-            
-            ToolbarItem(content: {
-                Menu(content: {
-                    ForEach(Array(self.model.layers.enumerated()), id: \.offset, content: { (index, _) in
-                        Button(action: {
-                            var layers = self.model.layers
-                            layers[index].toggle()
-                            
-                            self.model.layers = layers
-                        }, label: {
-                            HStack(content: {
-                                self.model.layers[index] ?
-                                Image(systemName: "checkmark.circle") :
-                                Image(systemName: "circle.dotted")
-                                
-                                Text(yc_vid_texture_order_t(rawValue: UInt32(index)).title())
-                            })
-                        })
-                    })
-                }, label: {
-                    Label(
-                        "Layers",
-                        systemImage: self.model.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
-                    )
-                }).disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
-            })
-            
-            ToolbarItem(content: {
-                Button("Export", systemImage: "square.and.arrow.up", action: {
-                    self.model.document = .init(image: self.model.renderer!.canvas!)
-                    self.model.state.isExporting.toggle()
-                }).disabled(self.model.state.isProcessing || self.model.renderer?.canvas == nil)
-            })
-        })
-        .onDisappear(perform: { self.model.invalidate() })
     }
     
     @ViewBuilder
@@ -145,6 +82,89 @@ struct MapView: View {
                 content: { Image(nsImage: canvas) }
             ).frame(width: proxy.size.width, height: proxy.size.height)
         }
+    }
+    
+    @ToolbarContentBuilder
+    private func levels() -> some ToolbarContent {
+        ToolbarItem(placement: .navigation, content: {
+            Picker(
+                selection: self.$model.elevation,
+                content: {
+                    ForEach(
+                        self.model.elevations,
+                        content: { Label($0.title, systemImage: $0.systemImage).tag($0) }
+                    )
+                },
+                label: { EmptyView() }
+            )
+            .pickerStyle(.segmented)
+            .disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
+            .onChange(of: self.model.elevation, {
+                DispatchQueue.main.async(execute: {
+                    self.model.state.isProcessing = true
+                    
+                    DispatchQueue.global(qos: .userInitiated).async(execute: {
+                        defer { DispatchQueue.main.async(execute: { self.model.state.isProcessing = false }) }
+                        
+                        self.model.cleanup()
+                        do { try self.model.display() } catch { self.model.error = error }
+                    })
+                })
+            })
+        })
+    }
+    
+    @ToolbarContentBuilder
+    private func loader() -> some ToolbarContent {
+        ToolbarItem(content: {
+            if self.model.state.isProcessing { ProgressView().progressViewStyle(.circular).scaleEffect(1.0 / 2.0) }
+        })
+    }
+    
+    @ToolbarContentBuilder
+    private func layers() -> some ToolbarContent {
+        ToolbarItem(content: {
+            Menu(content: {
+                ForEach(Array(self.model.layers.enumerated()), id: \.offset, content: { (index, _) in
+                    Button(action: {
+                        var layers = self.model.layers
+                        layers[index].toggle()
+                        
+                        // This way the state will be toggled.
+                        self.model.layers = layers
+                    }, label: {
+                        HStack(content: {
+                            self.model.layers[index] ?
+                            Image(systemName: "checkmark.circle") :
+                            Image(systemName: "circle.dotted")
+                            
+                            Text(yc_vid_texture_order_t(rawValue: UInt32(index)).title())
+                        })
+                    })
+                })
+            }, label: {
+                Label(
+                    "Layers",
+                    systemImage: self.model.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
+                )
+            }).disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
+        })
+    }
+     
+    @ToolbarContentBuilder
+    private func sheet() -> some ToolbarContent {
+        ToolbarItem(content: {
+            Button("Export", systemImage: "square.and.arrow.up", action: {
+                self.model.export.document = .init(image: self.model.renderer!.canvas!)
+                self.model.state.isExporting.toggle()
+            })
+            .disabled(
+                !self.model.state.hasOpenedMap ||
+                self.model.error != nil ||
+                self.model.state.isProcessing ||
+                self.model.renderer?.canvas == nil
+            )
+        })
     }
 }
 

@@ -10,8 +10,44 @@ import UniformTypeIdentifiers
 
 extension MapView {
     class Model: ObservableObject {
+        @Published
+        var error: Swift.Error?
         enum Error: Swift.Error { case path, parsing, rendering }
         
+        // TODO: Protocol and better pipeline, not observing.
+        @Published
+        var renderer: BitmapRenderer?
+        
+        @Published
+        var title: String? = nil
+        
+        @Published
+        var export: Export = .init()
+        struct Export {
+            var document: ImageDocument?
+            var filename: String?
+        }
+        
+        @Published
+        var elevation: Elevation = .empty()
+        struct Elevation: Hashable, Equatable, Identifiable {
+            static func empty() -> Self { .init(idx: 0, ptr: nil) }
+            
+            let id: UUID = .init()
+            let idx: UInt8
+            let ptr: UnsafeMutablePointer<yc_res_map_level_t>!
+            
+            var isEmpty: Bool { self.ptr == nil }
+            
+            var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
+            var systemImage: String { self.isEmpty ? "circle.dashed" : "\(self.idx + 1).circle" }
+        }
+        
+        @Published
+        var elevations: [Elevation] = [.empty(), .empty(), .empty()]
+        
+        @Published
+        var state: State = .init()
         struct State {
             var isImporting: Bool = false
             var isExporting: Bool = false
@@ -20,103 +56,68 @@ extension MapView {
             var hasOpenedMap: Bool = false
         }
         
-        struct Elevation: Hashable, Equatable, Identifiable {
-            static let empty = Self.init(idx: 0, ptr: nil)
-            
-            let id: UUID = .init()
-            let idx: UInt8
-            let ptr: UnsafeMutablePointer<yc_res_map_level_t>!
-            
-            var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
-            var systemImage: String { self.ptr == nil ? "circle.dashed" : "\(self.idx + 1).circle" }
-        }
-                
-        @Published
-        var error: Swift.Error?
-        
-        @Published
-        var title: String? = nil
-        
-        @Published
-        var document = ImageDocument(image: nil)
-        
-        @Published
-        var exportName: String? = nil
-        
-        @Published
-        var elevation: Elevation = .empty
-        
-        @Published
-        var elevations: [Elevation] = [.empty, .empty, .empty]
-        
-        @Published
-        var state: State = .init()
-        
-        @Published
-        var types: [UTType] = [.init(filenameExtension: "map")!, .init(filenameExtension: "MAP")!]
-        
         @Published
         var layers: [Bool] = .init(repeating: true, count: Int(YC_VID_TEXTURE_ORDER_COUNT.rawValue)) {
             didSet {
-                DispatchQueue.main.async(execute: { self.state.isProcessing = true })
-                
-                DispatchQueue.global(qos: .userInitiated).async(execute: {
-                    defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
+                // TODO: Tasks.
+                DispatchQueue.main.async(execute: {
+                    self.state.isProcessing = true
                     
-                    self.renderer?.layers = self.layers
-                    self.renderer?.render()
+                    DispatchQueue.global(qos: .userInitiated).async(execute: {
+                        defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
+                        
+                        self.renderer?.layers = self.layers
+                        self.renderer?.render()
+                    })
                 })
             }
         }
-        
-        @Published
-        var renderer: BitmapRenderer?
         
         private var map: yc_res_map_t = .init()
         private var view: yc_vid_view_t = .init()
         
         private var fetcher: Fetcher? { didSet {
             self.state.hasOpenedMap = self.fetcher != nil
-            self.title = self.fetcher?.map.lastPathComponent
-            self.exportName = self.fetcher?.map
-                .deletingPathExtension().lastPathComponent.appending("-\(self.elevation.idx + 1)")
+            
+            guard let fetcher 
+            else { self.title = nil; self.export.filename = nil; return }
+            
+            self.title = fetcher.map.lastPathComponent
+            self.export.filename = fetcher.map.deletingPathExtension().lastPathComponent.appending("-\(self.elevation.idx + 1)")
         } }
     }
 }
 
 extension MapView.Model {
-    func open(map: URL) throws {
-        self.state.isProcessing = true
-        
-        defer {
-            // escape current runloop for updated @State
-            DispatchQueue.main.async(execute: {
-                self.state.isProcessing = false
-                do { try self.parse() } catch { self.error = error }
-            })
-        }
+    func open(map: URL) {
+        DispatchQueue.main.async(execute: { self.state.isProcessing = true })
+        defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
         
         var root = map.deletingLastPathComponent()
-        guard root.lastPathComponent == "MAPS" else { throw Error.path }
+        guard root.lastPathComponent == "MAPS" else { self.error = Error.path; return }
         
         root = root.deletingLastPathComponent()
         
         self.fetcher = .init(map: map, root: root)
-        self.renderer = try .init(
-            cache: try .init(fetcher: self.fetcher!),
-            layers: self.layers
-        )
+        
+        do {
+            self.renderer = try .init(
+                cache: try .init(fetcher: self.fetcher!),
+                layers: self.layers
+            )
+        } catch {
+            self.fetcher = nil
+            self.error = error
+        }
+        
+        self.parse()
     }
 }
 
 extension MapView.Model {
-    func parse() throws {
-        self.state.isProcessing = true
-        
-        defer {
-            self.state.isProcessing = false
-            self.load()
-        }
+    func parse() {
+        DispatchQueue.main.async(execute: { self.state.isProcessing = true })
+        defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
         
         guard var fetcher = self.fetcher
         else { return }
@@ -157,9 +158,11 @@ extension MapView.Model {
         var result = yc_res_map_parse_result_t(map: nil)
         let status = yc_res_map_parse(self.fetcher!.map.path, &io_fs_api, &fetchers, &result)
         
-        guard status == YC_RES_MAP_STATUS_OK else { throw Error.parsing }
+        guard status == YC_RES_MAP_STATUS_OK 
+        else { self.error = Error.parsing; return }
         
         self.map = result.map.pointee
+        self.load()
     }
 }
 
@@ -174,7 +177,7 @@ extension MapView .Model{
             (2, self.map.levels.2),
         ].map({ .init(idx: $0.0, ptr: $0.1) })
         
-        self.elevation = self.elevations.first ?? .empty
+        self.elevation = self.elevations.first ?? .empty()
     }
 }
 
@@ -233,8 +236,8 @@ extension MapView.Model {
 extension MapView.Model {
     func invalidate() {
         self.cleanup()
-        
         self.renderer?.invalidate()
+        
         yc_res_map_invalidate(&self.map)
     }
 }
