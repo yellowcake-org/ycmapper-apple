@@ -74,11 +74,20 @@ struct MapView: View {
     
     @ViewBuilder
     private func content(canvas: NSImage) -> some View {
-        GeometryReader { proxy in
-            ScrollView(
-                [.horizontal, .vertical],
-                content: { Image(nsImage: canvas).antialiased(false).interpolation(.none) }
-            ).frame(width: proxy.size.width, height: proxy.size.height)
+        GeometryReader { geometry in
+            ScrollViewReader(content: { scroll in
+                ScrollView(
+                    [.horizontal, .vertical],
+                    content: {
+                        Image(nsImage: canvas)
+                            .antialiased(false)
+                            .interpolation(.none)
+                            .id(0)
+                            .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
+                    }
+                )
+                .frame(width: geometry.size.width, height: geometry.size.height)
+            })
         }
     }
     
@@ -99,8 +108,7 @@ struct MapView: View {
             .disabled(
                 !self.model.state.hasOpenedMap ||
                 self.model.state.isProcessing ||
-                self.model.error != nil ||
-                self.model.canvas == nil
+                self.model.error != nil
             )
         })
     }
@@ -142,8 +150,7 @@ struct MapView: View {
             .disabled(
                 !self.model.state.hasOpenedMap ||
                 self.model.state.isProcessing ||
-                self.model.error != nil ||
-                self.model.canvas == nil
+                self.model.error != nil
             )
         })
     }
@@ -158,8 +165,7 @@ struct MapView: View {
             .disabled(
                 !self.model.state.hasOpenedMap ||
                 self.model.state.isProcessing ||
-                self.model.error != nil ||
-                self.model.canvas == nil
+                self.model.error != nil
             )
         })
     }

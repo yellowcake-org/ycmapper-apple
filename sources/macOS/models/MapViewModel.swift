@@ -196,7 +196,10 @@ private extension MapView.Model {
     func display() {
         self.state.isProcessing = true
         self.queues.working.async(execute: {
+            var result: NSImage? = nil
+            
             defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
+            defer { DispatchQueue.main.async(execute: { self.canvas = result }) }
             
             guard self.elevation.ptr != nil else { return }
             guard var renderer = self.renderer else { return }
@@ -226,8 +229,7 @@ private extension MapView.Model {
             guard tick_status == YC_VID_STATUS_OK
             else { self.error =  Error.parsing; return }
             
-            let result = renderer.render()
-            DispatchQueue.main.async(execute: { self.canvas = result })
+            result = renderer.render()
         })
     }
 }
@@ -235,6 +237,7 @@ private extension MapView.Model {
 private extension MapView.Model {
     func cleanup(completion: (() -> ())? = nil) {
         self.state.isProcessing = true
+        
         self.queues.working.async(execute: { [weak self] in
             defer { DispatchQueue.main.async(execute: { self?.state.isProcessing = false }) }
             defer { DispatchQueue.main.async(execute: { completion?() }) }
