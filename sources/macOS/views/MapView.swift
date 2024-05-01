@@ -77,7 +77,7 @@ struct MapView: View {
         GeometryReader { proxy in
             ScrollView(
                 [.horizontal, .vertical],
-                content: { Image(nsImage: canvas) }
+                content: { Image(nsImage: canvas).antialiased(false).interpolation(.none) }
             ).frame(width: proxy.size.width, height: proxy.size.height)
         }
     }

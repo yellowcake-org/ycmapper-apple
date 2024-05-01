@@ -11,7 +11,7 @@ import AppKit
 import SwiftUI
 import Combine
 
-class BitmapRenderer: ObservableObject {
+class BitmapRenderer {
     public let cache: Cache
     public var callbacks: yc_vid_texture_api_t
     
@@ -27,6 +27,9 @@ class BitmapRenderer: ObservableObject {
         )
         
         ctx?.interpolationQuality = .none
+        ctx?.setShouldAntialias(false)
+        ctx?.setAllowsAntialiasing(false)
+        
         return ctx
     }()
     
