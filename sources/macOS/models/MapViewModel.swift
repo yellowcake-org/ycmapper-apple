@@ -40,8 +40,6 @@ extension MapView {
             let ptr: UnsafeMutablePointer<yc_res_map_level_t>!
             
             var isEmpty: Bool { self.ptr == nil }
-            
-            var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
             var systemImage: String { self.isEmpty ? "circle.dashed" : "\(self.idx + 1).circle" }
         }
         

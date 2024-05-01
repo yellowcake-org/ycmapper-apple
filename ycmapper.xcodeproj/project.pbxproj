@@ -10,6 +10,7 @@
 		B406ECAA2B0EA42B0008C796 /* io.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECA92B0EA42B0008C796 /* io.swift */; };
 		B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECAD2B0EAE870008C796 /* fetchers.swift */; };
 		B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECB02B0ED6AB0008C796 /* renderer.swift */; };
+		B4330C682BE295E800A223FA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B4330C672BE295E800A223FA /* Localizable.xcstrings */; };
 		B44715C32B12B983003E27C4 /* cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44715C22B12B983003E27C4 /* cache.swift */; };
 		B44A98192B1192430025115E /* sprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A98182B1192430025115E /* sprite.swift */; };
 		B44A981B2B11927D0025115E /* texture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A981A2B11927D0025115E /* texture.swift */; };
@@ -205,6 +206,7 @@
 		B406ECA92B0EA42B0008C796 /* io.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = io.swift; sourceTree = "<group>"; };
 		B406ECAD2B0EAE870008C796 /* fetchers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fetchers.swift; sourceTree = "<group>"; };
 		B406ECB02B0ED6AB0008C796 /* renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = renderer.swift; sourceTree = "<group>"; };
+		B4330C672BE295E800A223FA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B44715C22B12B983003E27C4 /* cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cache.swift; sourceTree = "<group>"; };
 		B44A98182B1192430025115E /* sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sprite.swift; sourceTree = "<group>"; };
 		B44A981A2B11927D0025115E /* texture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = texture.swift; sourceTree = "<group>"; };
@@ -289,6 +291,14 @@
 			path = renderer;
 			sourceTree = "<group>";
 		};
+		B4330C622BE2957500A223FA /* resources */ = {
+			isa = PBXGroup;
+			children = (
+				B4330C672BE295E800A223FA /* Localizable.xcstrings */,
+			);
+			path = resources;
+			sourceTree = "<group>";
+		};
 		B44715AB2B12B972003E27C4 /* cache */ = {
 			isa = PBXGroup;
 			children = (
@@ -326,6 +336,7 @@
 			children = (
 				B49D302F2B03ECDE00DBB05B /* cmake */,
 				B49D30282B03EC5900DBB05B /* sources */,
+				B4330C622BE2957500A223FA /* resources */,
 				B49D300C2B03EB9900DBB05B /* Products */,
 				B47F432C2B694C67006BEFCC /* Frameworks */,
 			);
@@ -626,6 +637,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4330C682BE295E800A223FA /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

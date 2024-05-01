@@ -49,38 +49,32 @@ struct MapView: View {
     @ViewBuilder
     private func error() -> some View {
         ContentUnavailableView(
-            "Couldn't load",
-            systemImage: "xmark.rectangle",
-            description: Text("Please, check path to the file and if all resources are in place.")
+            label: { Label { Text("screen.map.error.title") } icon: { Image(systemName: "xmark.rectangle") } },
+            description: { Text("screen.map.error.description") }
         )
     }
     
     @ViewBuilder
     private func empty() -> some View {
         ContentUnavailableView(
-            "Empty elevation",
-            systemImage: "rectangle.dashed",
-            description: Text("Selected elevation has no content.")
+            label: { Label { Text("screen.map.empty.title") } icon: { Image(systemName: "rectangle.dashed") } },
+            description: { Text("screen.map.empty.description") }
         )
     }
     
     @ViewBuilder
     private func welcome() -> some View {
-        VStack(alignment: .center, spacing: .zero, content: {
-            ContentUnavailableView(
-                "Welcome to ycmapper!",
-                systemImage: "filemenu.and.selection",
-                description: Text(
-                    "Open Fallout™ map file to begin. Make sure that other resources" + " " +
-                    "are available at their default paths."
+        ContentUnavailableView(
+            label: { Label { Text("screen.map.welcome.title") } icon: { Image(systemName: "filemenu.and.selection") } },
+            description: { Text("screen.map.welcome.description") },
+            actions: {
+                Button(
+                    action: { self.model.state.isImporting.toggle() },
+                    label: { Text("screen.map.welcome.action").padding() }
                 )
-            )
-            
-            Button(
-                action: { self.model.state.isImporting.toggle() },
-                label: { Text("Open").padding() }
-            ).buttonStyle(.bordered)
-        })
+                .buttonStyle(.bordered)
+            }
+        )
     }
     
     @ViewBuilder
@@ -110,7 +104,7 @@ struct MapView: View {
                 content: {
                     ForEach(
                         self.model.elevations,
-                        content: { Label($0.title, systemImage: $0.systemImage).tag($0) }
+                        content: { Label("", systemImage: $0.systemImage).tag($0) }
                     )
                 },
                 label: { EmptyView() }
@@ -169,10 +163,13 @@ struct MapView: View {
     @ToolbarContentBuilder
     private func sheet() -> some ToolbarContent {
         ToolbarItem(content: {
-            Button("Export", systemImage: "square.and.arrow.up", action: {
-                self.model.export.document = .init(image: self.model.canvas!)
-                self.model.state.isExporting.toggle()
-            })
+            Button(
+                action: {
+                    self.model.export.document = .init(image: self.model.canvas!)
+                    self.model.state.isExporting.toggle()
+                },
+                label: { Label(title: { Text("screen.map.sheet.action") }, icon: { Image(systemName: "square.and.arrow.up") })}
+            )
             .disabled(
                 !self.model.state.hasOpenedMap ||
                 self.model.state.isProcessing ||
@@ -183,17 +180,17 @@ struct MapView: View {
 }
 
 extension yc_vid_texture_order_t {
-    func title() -> String {
+    func title() -> LocalizedStringKey {
         switch self.rawValue {
-        case YC_VID_TEXTURE_ORDER_FLOOR.rawValue: return "Floor"
-        case YC_VID_TEXTURE_ORDER_FLAT.rawValue: return "Flats"
-        case YC_VID_TEXTURE_ORDER_WALL.rawValue: return "Walls"
-        case YC_VID_TEXTURE_ORDER_SCENERY.rawValue: return "Scenery"
-        case YC_VID_TEXTURE_ORDER_MISC.rawValue: return "Miscellanea"
-        case YC_VID_TEXTURE_ORDER_ITEM.rawValue: return "Items"
-        case YC_VID_TEXTURE_ORDER_CRITTER.rawValue: return "Critters"
-        case YC_VID_TEXTURE_ORDER_ROOF.rawValue: return "Roofs"
-        default: return "Unknown"
+        case YC_VID_TEXTURE_ORDER_FLOOR.rawValue: return "screen.map.toolbar.layers.floor"
+        case YC_VID_TEXTURE_ORDER_FLAT.rawValue: return "screen.map.toolbar.layers.flats"
+        case YC_VID_TEXTURE_ORDER_WALL.rawValue: return "screen.map.toolbar.layers.walls"
+        case YC_VID_TEXTURE_ORDER_SCENERY.rawValue: return "screen.map.toolbar.layers.scenery"
+        case YC_VID_TEXTURE_ORDER_MISC.rawValue: return "screen.map.toolbar.layers.miscellanea"
+        case YC_VID_TEXTURE_ORDER_ITEM.rawValue: return "screen.map.toolbar.layers.items"
+        case YC_VID_TEXTURE_ORDER_CRITTER.rawValue: return "screen.map.toolbar.layers.critters"
+        case YC_VID_TEXTURE_ORDER_ROOF.rawValue: return "screen.map.toolbar.layers.roofs"
+        default: return "screen.map.toolbar.layers.unknown"
         }
     }
 }
