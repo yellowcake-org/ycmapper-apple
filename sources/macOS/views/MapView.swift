@@ -15,14 +15,12 @@ struct MapView: View {
         ZStack(content: {
             if !self.model.state.hasOpenedMap {
                 self.welcome()
-            } else {
-                if self.model.elevation.isEmpty && !self.model.state.isProcessing {
-                    self.empty()
-                } else if let _ = self.model.error {
-                    self.error()
-                } else {
-                    if let canvas = self.model.renderer?.canvas { self.content(canvas: canvas) }
-                }
+            } else if let _ = self.model.error {
+                self.error()
+            } else if let canvas = self.model.renderer?.canvas {
+                self.content(canvas: canvas)
+            } else if self.model.elevation.isEmpty && !self.model.state.isProcessing {
+                self.empty()
             }
         })
         .onDisappear(perform: { self.model.invalidate() })
@@ -98,19 +96,12 @@ struct MapView: View {
                 label: { EmptyView() }
             )
             .pickerStyle(.segmented)
-            .disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
-            .onChange(of: self.model.elevation, {
-                DispatchQueue.main.async(execute: {
-                    self.model.state.isProcessing = true
-                    
-                    DispatchQueue.global(qos: .userInitiated).async(execute: {
-                        defer { DispatchQueue.main.async(execute: { self.model.state.isProcessing = false }) }
-                        
-                        self.model.cleanup()
-                        do { try self.model.display() } catch { self.model.error = error }
-                    })
-                })
-            })
+            .disabled(
+                !self.model.state.hasOpenedMap ||
+                self.model.error != nil ||
+                self.model.state.isProcessing ||
+                self.model.renderer?.canvas == nil
+            )
         })
     }
     
@@ -147,7 +138,13 @@ struct MapView: View {
                     "Layers",
                     systemImage: self.model.layers.allSatisfy({ $0 }) ? "square.3.layers.3d" : "square.3.layers.3d.middle.filled"
                 )
-            }).disabled(!self.model.state.hasOpenedMap || self.model.error != nil || self.model.state.isProcessing)
+            })
+            .disabled(
+                !self.model.state.hasOpenedMap ||
+                self.model.error != nil ||
+                self.model.state.isProcessing ||
+                self.model.renderer?.canvas == nil
+            )
         })
     }
      
