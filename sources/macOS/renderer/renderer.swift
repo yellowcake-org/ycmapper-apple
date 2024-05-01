@@ -11,14 +11,11 @@ import AppKit
 import SwiftUI
 import Combine
 
-class BitmapRenderer: ObservableObject {
+class BitmapRenderer {
     public let cache: Cache
     public var callbacks: yc_vid_texture_api_t
     
     public var layers: [Bool]
-    
-    @Published
-    private(set) public var canvas: NSImage? = nil
     private var textures: [UUID : Texture] = .init()
     
     private var ctx = {
@@ -30,6 +27,9 @@ class BitmapRenderer: ObservableObject {
         )
         
         ctx?.interpolationQuality = .none
+        ctx?.setShouldAntialias(false)
+        ctx?.setAllowsAntialiasing(false)
+        
         return ctx
     }()
     
@@ -64,8 +64,8 @@ class BitmapRenderer: ObservableObject {
 // MARK: - Usage
 
 extension BitmapRenderer {
-    func render() {
-        guard let ctx = self.ctx else { return }
+    func render() -> NSImage? {
+        guard let ctx = self.ctx else { return nil }
         ctx.clear(.init(x: 0, y: 0, width: ctx.width, height: ctx.height))
         
         let values = self.textures.values.filter({ self.layers[Int($0.order.rawValue)] })
@@ -109,13 +109,10 @@ extension BitmapRenderer {
         imprint(values: others.sorted(by: compare(lhs:rhs:)))
         imprint(values: roofs)
                 
-        let image = NSImage(cgImage: ctx.makeImage()!, size: .init(width: ctx.width, height: ctx.height))
-        DispatchQueue.main.async(execute: { self.canvas = image })
+        return NSImage(cgImage: ctx.makeImage()!, size: .init(width: ctx.width, height: ctx.height))
     }
     
     func invalidate(fully: Bool = false) {
-        if fully { self.canvas = nil }
-        
         self.cache.invalidate()
         self.textures.removeAll()
     }
