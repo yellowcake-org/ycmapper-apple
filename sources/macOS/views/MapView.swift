@@ -66,10 +66,21 @@ struct MapView: View {
     
     @ViewBuilder
     private func welcome() -> some View {
-        Button(
-            action: { self.model.state.isImporting.toggle() },
-            label: { Text("Open map") }
-        ).padding()
+        VStack(alignment: .center, spacing: .zero, content: {
+            ContentUnavailableView(
+                "Welcome to ycmapper!",
+                systemImage: "filemenu.and.selection",
+                description: Text(
+                    "Open Fallout™ map file to begin. Make sure that other resources" + " " +
+                    "are available at their default paths."
+                )
+            )
+            
+            Button(
+                action: { self.model.state.isImporting.toggle() },
+                label: { Text("Open").padding() }
+            ).buttonStyle(.bordered)
+        })
     }
     
     @ViewBuilder
