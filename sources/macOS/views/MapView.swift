@@ -17,7 +17,7 @@ struct MapView: View {
                 self.welcome()
             } else if let _ = self.model.error {
                 self.error()
-            } else if let canvas = self.model.renderer?.canvas {
+            } else if let canvas = self.model.canvas {
                 self.content(canvas: canvas)
             } else if self.model.elevation.isEmpty && !self.model.state.isProcessing {
                 self.empty()
@@ -98,9 +98,9 @@ struct MapView: View {
             .pickerStyle(.segmented)
             .disabled(
                 !self.model.state.hasOpenedMap ||
-                self.model.error != nil ||
                 self.model.state.isProcessing ||
-                self.model.renderer?.canvas == nil
+                self.model.error != nil ||
+                self.model.canvas == nil
             )
         })
     }
@@ -141,9 +141,9 @@ struct MapView: View {
             })
             .disabled(
                 !self.model.state.hasOpenedMap ||
-                self.model.error != nil ||
                 self.model.state.isProcessing ||
-                self.model.renderer?.canvas == nil
+                self.model.error != nil ||
+                self.model.canvas == nil
             )
         })
     }
@@ -152,14 +152,14 @@ struct MapView: View {
     private func sheet() -> some ToolbarContent {
         ToolbarItem(content: {
             Button("Export", systemImage: "square.and.arrow.up", action: {
-                self.model.export.document = .init(image: self.model.renderer!.canvas!)
+                self.model.export.document = .init(image: self.model.canvas!)
                 self.model.state.isExporting.toggle()
             })
             .disabled(
                 !self.model.state.hasOpenedMap ||
-                self.model.error != nil ||
                 self.model.state.isProcessing ||
-                self.model.renderer?.canvas == nil
+                self.model.error != nil ||
+                self.model.canvas == nil
             )
         })
     }

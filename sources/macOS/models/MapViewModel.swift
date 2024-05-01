@@ -14,9 +14,8 @@ extension MapView {
         var error: Swift.Error?
         enum Error: Swift.Error { case path, parsing, rendering }
         
-        // TODO: Protocol and better pipeline, not observing.
         @Published
-        var renderer: BitmapRenderer?
+        var canvas: NSImage? = nil
         
         @Published
         var title: String? = nil
@@ -24,9 +23,12 @@ extension MapView {
         @Published
         var export: Export = .init()
         struct Export {
-            var document: ImageDocument?
             var filename: String?
+            var document: ImageDocument?
         }
+        
+        @Published
+        var elevations: [Elevation] = [.empty(), .empty(), .empty()]
         
         @Published
         var elevation: Elevation = .empty() { didSet { self.cleanup(completion: { [weak self] in self?.display() }) } }
@@ -42,9 +44,6 @@ extension MapView {
             var title: String { self.ptr == nil ? "None" : "Level \(self.idx + 1)" }
             var systemImage: String { self.isEmpty ? "circle.dashed" : "\(self.idx + 1).circle" }
         }
-        
-        @Published
-        var elevations: [Elevation] = [.empty(), .empty(), .empty()]
         
         @Published
         var state: State = .init()
@@ -72,6 +71,7 @@ extension MapView {
         private var map: yc_res_map_t = .init()
         private var view: yc_vid_view_t = .init()
         
+        private var renderer: BitmapRenderer?
         private var fetcher: Fetcher? { didSet {
             self.state.hasOpenedMap = self.fetcher != nil
             
@@ -118,6 +118,8 @@ extension MapView.Model {
         self.cleanup(completion: {
             self.renderer?.invalidate()
             yc_res_map_invalidate(&self.map)
+            
+            self.canvas = nil
         })
     }
 }
@@ -179,10 +181,7 @@ private extension MapView.Model {
 }
 
 private extension MapView .Model{
-    func setup() {
-        self.state.isProcessing = true
-        defer { self.state.isProcessing = false }
-        
+    func setup() {        
         self.elevations = [
             (0, self.map.levels.0),
             (1, self.map.levels.1),
@@ -227,7 +226,8 @@ private extension MapView.Model {
             guard tick_status == YC_VID_STATUS_OK
             else { self.error =  Error.parsing; return }
             
-            renderer.render()
+            let result = renderer.render()
+            DispatchQueue.main.async(execute: { self.canvas = result })
         })
     }
 }
