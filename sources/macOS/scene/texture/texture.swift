@@ -6,11 +6,13 @@
 //
 
 import Foundation
+import SpriteKit
 
-extension BitmapRenderer {
+extension MapScene {
     class Texture {
         let uuid: UUID
         let frame: Cache.Sprite.Animation.Frame
+        let node: SKSpriteNode
         
         var origin: CGPoint
         var indexes: yc_vid_indexes_t
@@ -29,6 +31,10 @@ extension BitmapRenderer {
         ) {
             self.uuid = uuid
             self.frame = frame
+            
+            self.node = .init(texture: frame.texture, size: frame.size)
+            self.node.anchorPoint = .init(x: 0.0, y: 0.0)
+            
             self.origin = origin
             self.indexes = indexes
             self.grid = grid

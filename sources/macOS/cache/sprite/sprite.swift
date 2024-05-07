@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreGraphics
+import SpriteKit
 
 extension Cache {
     class Sprite {
@@ -25,12 +26,14 @@ extension Cache {
                 let size: CGSize
                 let shift: CGPoint
                 
-                let image: CGImage
+                let texture: SKTexture
                 
-                init(size: CGSize, shift: CGPoint, image: CGImage?) {
+                init(size: CGSize, shift: CGPoint, image: CGImage) {
                     self.size = size
                     self.shift = shift
-                    self.image = image!
+                    self.texture = .init(cgImage: image)
+                    
+                    self.texture.filteringMode = .nearest
                 }
                 
                 convenience

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 struct MapView: View {
     @StateObject
@@ -17,8 +18,8 @@ struct MapView: View {
                 self.welcome()
             } else if let _ = self.model.error {
                 self.error()
-            } else if let canvas = self.model.canvas {
-                self.content(canvas: canvas)
+            } else if let scene = self.model.scene {
+                self.content(scene: scene)
             } else if self.model.elevation.isEmpty && !self.model.state.isProcessing {
                 self.empty()
             }
@@ -35,7 +36,7 @@ struct MapView: View {
             isPresented: self.$model.state.isImporting,
             allowedContentTypes: MapDocument.readableContentTypes,
             allowsMultipleSelection: false,
-            onCompletion: { if case let .success(urls) = $0 { self.model.open(map: urls.first!) } }
+            onCompletion: { if case let .success(urls) = $0 { self.model.open(url: urls.first!) } }
         )
         .fileExporter(
             isPresented: self.$model.state.isExporting,
@@ -78,21 +79,13 @@ struct MapView: View {
     }
     
     @ViewBuilder
-    private func content(canvas: NSImage) -> some View {
+    private func content(scene: MapScene) -> some View {
         GeometryReader { geometry in
-            ScrollViewReader(content: { scroll in
-                ScrollView(
-                    [.horizontal, .vertical],
-                    content: {
-                        Image(nsImage: canvas)
-                            .antialiased(false)
-                            .interpolation(.none)
-                            .id(0)
-                            .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
-                    }
-                )
-                .frame(width: geometry.size.width, height: geometry.size.height)
+            ScrollView([.horizontal, .vertical], content: {
+                SpriteView(scene: scene)
+                    .frame(width: scene.size.width, height: scene.size.height)
             })
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
     
@@ -165,7 +158,7 @@ struct MapView: View {
         ToolbarItem(content: {
             Button(
                 action: {
-                    self.model.export.document = .init(image: self.model.canvas!)
+//                    self.model.export.document = .init(image: self.model.canvas!)
                     self.model.state.isExporting.toggle()
                 },
                 label: { Label(title: { Text("screen.map.sheet.action") }, icon: { Image(systemName: "square.and.arrow.up") })}
