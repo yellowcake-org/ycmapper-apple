@@ -45,7 +45,9 @@ class MapScene: SKScene {
                 return scene.invalidate(texture: texture)
             },
             is_equal: { lhs, rhs in
-                return false
+                lhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
+                ==
+                rhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
             },
             set_visibility: { texture, visibility, order, ctx in
                 guard let ctx else { return YC_VID_STATUS_CORRUPTED }
@@ -97,6 +99,7 @@ class MapScene: SKScene {
 }
 
 // MARK: - Cycling
+
 extension MapScene {
     override func update(_ currentTime: TimeInterval) {
         var seconds = yc_vid_time_seconds(value: 0, scale: self.yc_view!.time.scale)
@@ -135,7 +138,6 @@ private extension MapScene {
             let texture: Texture = .init(
                 uuid: .init(),
                 frame: frame,
-                origin: .zero,
                 indexes: .init(x: .zero, y: .zero),
                 grid: .zero,
                 order: YC_VID_TEXTURE_ORDER_ROOF,
@@ -143,7 +145,6 @@ private extension MapScene {
             )
                         
             self.textures[texture.uuid] = texture
-            self.addChild(texture.node)
             
             // allocate and copy the handler. free later within invalidation
             destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
@@ -191,6 +192,14 @@ private extension MapScene {
         self.textures[uuid]!.order = order
         self.textures[uuid]!.visibility = visibility
         
+        let node = self.textures[uuid]!.node
+        
+        switch visibility {
+        case YC_VID_TEXTURE_VISIBILITY_ON: if node.parent == nil { self.addChild(node) }
+        case YC_VID_TEXTURE_VISIBILITY_OFF: if node.parent != nil { node.removeFromParent() }
+        default: fatalError()
+        }
+        
         return YC_VID_STATUS_OK
     }
     
@@ -203,14 +212,11 @@ private extension MapScene {
         
         guard self.textures[uuid] != nil
         else { return YC_VID_STATUS_CORRUPTED }
-        
-        self.textures[uuid]?.origin.x = CGFloat(coordinates.x)
-        self.textures[uuid]?.origin.y = CGFloat(coordinates.y)
-        
+                
         let x = CGFloat(coordinates.x) + self.textures[uuid]!.frame.shift.x
-        let y = CGFloat(coordinates.y) + self.textures[uuid]!.frame.shift.y
+        let y = self.size.height - (CGFloat(coordinates.y) + self.textures[uuid]!.frame.shift.y)
         
-        self.textures[uuid]?.node.position = .init(x: x, y: self.size.height - y)
+        self.textures[uuid]!.node.position = .init(x: x, y: y)
         
         return YC_VID_STATUS_OK
     }
@@ -220,14 +226,14 @@ private extension MapScene {
         indexes: yc_vid_indexes_t,
         scale: size_t
     ) -> yc_vid_status_t {
-        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        else { return YC_VID_STATUS_INPUT }
-        
-        guard self.textures[uuid] != nil
-        else { return YC_VID_STATUS_CORRUPTED }
-        
-        self.textures[uuid]?.grid = scale
-        self.textures[uuid]?.indexes = indexes
+//        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
+//        else { return YC_VID_STATUS_INPUT }
+//        
+//        guard self.textures[uuid] != nil
+//        else { return YC_VID_STATUS_CORRUPTED }
+//        
+//        self.textures[uuid]!.grid = scale
+//        self.textures[uuid]!.indexes = indexes
         
         return YC_VID_STATUS_OK
     }

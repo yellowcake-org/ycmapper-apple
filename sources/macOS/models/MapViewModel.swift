@@ -14,7 +14,6 @@ extension MapView {
         var error: Swift.Error?
         enum Error: Swift.Error { case path, parsing, loading, rendering }
         
-        @Published
         var scene: MapScene? = nil
         
         @Published

@@ -84,6 +84,18 @@ struct MapView: View {
             ScrollView([.horizontal, .vertical], content: {
                 SpriteView(scene: scene)
                     .frame(width: scene.size.width, height: scene.size.height)
+                    .onAppear(perform: {
+                        DispatchQueue.main.async(execute: {
+//                            self.model.scene?.view?.ignoresSiblingOrder = true
+                            self.model.scene?.view?.shouldCullNonVisibleNodes = true
+                            self.model.scene?.view?.preferredFramesPerSecond = 120
+                            
+                            self.model.scene?.view?.showsFPS = true
+                            self.model.scene?.view?.showsDrawCount = true
+                            self.model.scene?.view?.showsNodeCount = true
+                            self.model.scene?.view?.showsQuadCount = true
+                        })
+                    })
             })
             .frame(width: geometry.size.width, height: geometry.size.height)
         }

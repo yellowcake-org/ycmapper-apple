@@ -23,66 +23,46 @@ extension Cache {
             let frames: [Frame]
             
             class Frame {
-                let size: CGSize
                 let shift: CGPoint
-                
                 let texture: SKTexture
                 
-                init(size: CGSize, shift: CGPoint, image: CGImage) {
-                    self.size = size
+                init(shift: CGPoint, texture: SKTexture) {
                     self.shift = shift
-                    self.texture = .init(cgImage: image)
-                    
+                    self.texture = texture
                     self.texture.filteringMode = .nearest
                 }
                 
                 convenience
                 init(raw texture: yc_res_frm_texture_t, shift: yc_res_frm_shift_t, palette: yc_res_pal_parse_result_t) {
-                    let ref = CGContext(
-                        data: nil,
-                        width: Int(texture.dimensions.horizontal),
-                        height: Int(texture.dimensions.vertical),
-                        bitsPerComponent: 8, // UInt8
-                        bytesPerRow: Int(texture.dimensions.horizontal) * 4, // count(RGBA) == 4
-                        space: .init(name: CGColorSpace.sRGB)!,
-                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-                    )!
-                    
-                    ref.interpolationQuality = .none
+                    let count = Int(texture.dimensions.horizontal * texture.dimensions.vertical) * 4
+                    var bytes: [UInt8] = .init(repeating: 0, count: count)
                     
                     for v_idx in 0..<Int(texture.dimensions.vertical) {
                         for h_idx in 0..<Int(texture.dimensions.horizontal) {
-                            let rows = v_idx * (Int(texture.dimensions.horizontal) * 4)
+                            let rows = v_idx.distance(to: Int(texture.dimensions.vertical - 1)) * (Int(texture.dimensions.horizontal) * 4)
                             
                             let color_idx = texture.pixels.advanced(by: h_idx + v_idx * Int(texture.dimensions.horizontal)).pointee
                             var color = palette.colors.advanced(by: Int(color_idx)).pointee
                             let color_is_transparent = yc_res_pal_color_is_transparent(&color)
 
-                            ref.data?.assumingMemoryBound(to: UInt8.self)
-                                .advanced(by: (h_idx * 4 + 0) + rows).pointee = color.r
-                            ref.data?.assumingMemoryBound(to: UInt8.self)
-                                .advanced(by: (h_idx * 4 + 1) + rows).pointee = color.g
-                            ref.data?.assumingMemoryBound(to: UInt8.self)
-                                .advanced(by: (h_idx * 4 + 2) + rows).pointee = color.b
-                            ref.data?.assumingMemoryBound(to: UInt8.self)
-                                .advanced(by: (h_idx * 4 + 3) + rows).pointee = color_is_transparent ? .min : .max
+                            bytes[(h_idx * 4 + 0) + rows] = color.r
+                            bytes[(h_idx * 4 + 1) + rows] = color.g
+                            bytes[(h_idx * 4 + 2) + rows] = color.b
+                            bytes[(h_idx * 4 + 3) + rows] = color_is_transparent ? .min : .max
                         }
                     }
                     
+                    let size: CGSize = .init(
+                        width: CGFloat(texture.dimensions.horizontal),
+                        height: CGFloat(texture.dimensions.vertical)
+                    )
+                    
                     self.init(
-                        size: .init(
-                            width: CGFloat(texture.dimensions.horizontal),
-                            height: CGFloat(texture.dimensions.vertical)
-                        ),
                         shift: .init(
-                            x: CGFloat(
-                                shift.horizontal + texture.shift.horizontal - Int16(texture.dimensions.horizontal) / 2
-                            ),
-                            y: CGFloat(
-                                shift.vertical + texture.shift.vertical
-                            )
+                            x: CGFloat(shift.horizontal + texture.shift.horizontal - Int16(texture.dimensions.horizontal) / 2),
+                            y: CGFloat(shift.vertical + texture.shift.vertical)
                         ),
-                        image: ref.makeImage()!
+                        texture: .init(data: .init(bytes: &bytes, count: count), size: size)
                     )
                 }
             }
