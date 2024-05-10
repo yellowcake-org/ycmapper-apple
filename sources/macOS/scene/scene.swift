@@ -139,12 +139,12 @@ private extension MapScene {
                 frame: frame,
                 indexes: .init(x: .zero, y: .zero),
                 grid: .zero,
-                order: YC_VID_TEXTURE_ORDER_ROOF,
+                order: nil,
                 visibility: YC_VID_TEXTURE_VISIBILITY_OFF
             )
                         
             self.textures[texture.uuid] = texture
-            self.addChild(self.textures[texture.uuid]!.node)
+            self.addChild(texture.node)
             
             // allocate and copy the handler. free later within invalidation
             destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
@@ -189,10 +189,10 @@ private extension MapScene {
         let uuid = texture.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         guard self.textures[uuid] != nil else { return YC_VID_STATUS_CORRUPTED }
         
-        self.textures[uuid]!.order = order
-        self.textures[uuid]!.visibility = visibility
+        guard let texture = self.textures[uuid]
+        else { return YC_VID_STATUS_CORRUPTED }
         
-        self.textures[uuid]!.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF
+        texture.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF
         
         return YC_VID_STATUS_OK
     }
@@ -204,13 +204,13 @@ private extension MapScene {
         guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
         else { return YC_VID_STATUS_INPUT }
         
-        guard self.textures[uuid] != nil
+        guard let texture = self.textures[uuid]
         else { return YC_VID_STATUS_CORRUPTED }
                 
-        let x = CGFloat(coordinates.x) + self.textures[uuid]!.frame.shift.x
-        let y = self.size.height - (CGFloat(coordinates.y) + self.textures[uuid]!.frame.shift.y)
+        let x = CGFloat(coordinates.x) + texture.frame.shift.x
+        let y = self.size.height - (CGFloat(coordinates.y) + texture.frame.shift.y)
         
-        self.textures[uuid]!.node.position = .init(x: x, y: y)
+        texture.node.position = .init(x: x, y: y)
         
         return YC_VID_STATUS_OK
     }
@@ -228,23 +228,19 @@ private extension MapScene {
         
         texture.grid = scale
         texture.indexes = indexes
+         
+        let side: CGFloat = .init(texture.grid)
         
-        let width: CGFloat = .init(texture.grid)
-        
-        let xScaled = 1.0 - (.init(texture.indexes.x) / width)
-        let yScaled = (.init(texture.indexes.y) / width)
+        let xScaled = (side - .init(texture.indexes.x)) / side
+        let yScaled = .init(texture.indexes.y) / side
                 
-        func tileOrder(x: CGFloat, y: CGFloat) -> CGFloat {
-            let sum = x + y
-            
-            if sum > x && sum > y { return y - x }
-            else { return x - y }
-        }
-                
-        let tileOrdered: CGFloat = tileOrder(x: xScaled, y: yScaled)
-        let layerOrdered: CGFloat = .init(texture.order.rawValue) / .init(YC_VID_TEXTURE_ORDER_COUNT.rawValue - 1)
+//        let sum = xScaled + yScaled
+
+        let layerOrdered: CGFloat = .init(texture.order?.rawValue ?? 0) / .init(YC_VID_TEXTURE_ORDER_COUNT.rawValue - 1)
+        let tileOrdered: CGFloat = 
+        /*(sum > xScaled && sum > yScaled ? yScaled - xScaled : xScaled - yScaled) +*/ (xScaled + side * yScaled)
         
-        texture.node.zPosition = layerOrdered + tileOrdered + (xScaled + width * yScaled)
+        texture.node.zPosition = layerOrdered + tileOrdered
             
         return YC_VID_STATUS_OK
     }

@@ -16,7 +16,7 @@ extension MapScene {
         
         var indexes: yc_vid_indexes_t
         var grid: size_t
-        var order: yc_vid_texture_order_t
+        var order: yc_vid_texture_order_t?
         var visibility: yc_vid_texture_visibility_t
         
         init(
@@ -24,7 +24,7 @@ extension MapScene {
             frame: Cache.Sprite.Animation.Frame,
             indexes: yc_vid_indexes_t, 
             grid: size_t,
-            order: yc_vid_texture_order_t,
+            order: yc_vid_texture_order_t?,
             visibility: yc_vid_texture_visibility_t
         ) {
             self.uuid = uuid
