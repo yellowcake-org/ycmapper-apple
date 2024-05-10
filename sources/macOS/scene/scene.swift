@@ -10,6 +10,7 @@ import SpriteKit
 class MapScene: SKScene {
     public let cache: Cache
     
+    // TODO: Better get rid of it and have handles to be direct pointers to the texture.
     private var textures: [UUID : Texture] = .init()
     
     private var yc_level: yc_res_map_level_t
@@ -30,6 +31,7 @@ class MapScene: SKScene {
         
         self.scaleMode = .aspectFill
         self.anchorPoint = .init(x: 0.0, y: 0.0)
+        self.backgroundColor = .clear
         
         self.yc_callbacks = .init(
             initialize: { fid, orientation, destination, ctx  in
@@ -90,10 +92,7 @@ class MapScene: SKScene {
     
     deinit {
         if var yc_view {
-            yc_vid_view_invalidate(
-                &yc_view,
-                withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 })
-            )
+            yc_vid_view_invalidate(&yc_view, withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }))
         }
     }
 }
@@ -103,13 +102,13 @@ class MapScene: SKScene {
 extension MapScene {
     override func update(_ currentTime: TimeInterval) {
         var seconds = yc_vid_time_seconds(value: 0, scale: self.yc_view!.time.scale)
-        let _ = yc_vid_view_frame_tick(
+        let tick_status = yc_vid_view_frame_tick(
             withUnsafeMutablePointer(to: &self.yc_view!, { $0 }),
             withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }),
             &seconds
         )
-//        guard tick_status == YC_VID_STATUS_OK
-//        else { self.error = Error.rendering; return }
+        
+        guard tick_status == YC_VID_STATUS_OK else { fatalError() }
     }
 }
 
@@ -145,6 +144,7 @@ private extension MapScene {
             )
                         
             self.textures[texture.uuid] = texture
+            self.addChild(self.textures[texture.uuid]!.node)
             
             // allocate and copy the handler. free later within invalidation
             destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
@@ -192,13 +192,7 @@ private extension MapScene {
         self.textures[uuid]!.order = order
         self.textures[uuid]!.visibility = visibility
         
-        let node = self.textures[uuid]!.node
-        
-        switch visibility {
-        case YC_VID_TEXTURE_VISIBILITY_ON: if node.parent == nil { self.addChild(node) }
-        case YC_VID_TEXTURE_VISIBILITY_OFF: if node.parent != nil { node.removeFromParent() }
-        default: fatalError()
-        }
+        self.textures[uuid]!.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF
         
         return YC_VID_STATUS_OK
     }
@@ -226,15 +220,32 @@ private extension MapScene {
         indexes: yc_vid_indexes_t,
         scale: size_t
     ) -> yc_vid_status_t {
-//        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-//        else { return YC_VID_STATUS_INPUT }
-//        
-//        guard self.textures[uuid] != nil
-//        else { return YC_VID_STATUS_CORRUPTED }
-//        
-//        self.textures[uuid]!.grid = scale
-//        self.textures[uuid]!.indexes = indexes
+        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
+        else { return YC_VID_STATUS_INPUT }
         
+        guard let texture = self.textures[uuid]
+        else { return YC_VID_STATUS_CORRUPTED }
+        
+        texture.grid = scale
+        texture.indexes = indexes
+        
+        let width: CGFloat = .init(texture.grid)
+        
+        let xScaled = 1.0 - (.init(texture.indexes.x) / width)
+        let yScaled = (.init(texture.indexes.y) / width)
+                
+        func tileOrder(x: CGFloat, y: CGFloat) -> CGFloat {
+            let sum = x + y
+            
+            if sum > x && sum > y { return y - x }
+            else { return x - y }
+        }
+                
+        let tileOrdered: CGFloat = tileOrder(x: xScaled, y: yScaled)
+        let layerOrdered: CGFloat = .init(texture.order.rawValue) / .init(YC_VID_TEXTURE_ORDER_COUNT.rawValue - 1)
+        
+        texture.node.zPosition = layerOrdered + tileOrdered + (xScaled + width * yScaled)
+            
         return YC_VID_STATUS_OK
     }
 }
