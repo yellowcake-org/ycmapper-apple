@@ -90,11 +90,12 @@ struct MapView: View {
                         .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
                         .onAppear(perform: {
                             DispatchQueue.main.async(execute: {
+                                self.model.scene?.view?.allowsTransparency = true
                                 self.model.scene?.view?.ignoresSiblingOrder = true
-                                self.model.scene?.view?.preferredFramesPerSecond = 120
                                 self.model.scene?.view?.disableDepthStencilBuffer = true
                                 self.model.scene?.view?.shouldCullNonVisibleNodes = true
-                                self.model.scene?.view?.allowsTransparency = true
+                                
+                                self.model.scene?.view?.preferredFramesPerSecond = 60
                                 
                                 self.model.scene?.view?.showsFPS = true
                                 self.model.scene?.view?.showsDrawCount = true

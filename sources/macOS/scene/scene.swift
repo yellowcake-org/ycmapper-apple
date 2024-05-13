@@ -10,14 +10,14 @@ import SpriteKit
 class MapScene: SKScene {
     public let cache: Cache
     
-    // TODO: Better get rid of it and have handles to be direct pointers to the texture.
-    private var textures: [UUID : Texture] = .init()
-    
     private var yc_level: yc_res_map_level_t
-    private var yc_callbacks: yc_vid_texture_api_t?
     
     private var yc_view: yc_vid_view_t?
     private var yc_renderer: yc_vid_renderer_t?
+    private var yc_callbacks: yc_vid_texture_api_t?
+
+    private var layers: [SKNode] = []
+    private var textures: [UUID : Texture] = .init() // TODO: Better get rid of it and have handles to be direct pointers to the texture.
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -88,6 +88,18 @@ class MapScene: SKScene {
             self.yc_view = nil
             throw Error.initialization
         }
+        
+        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
+            if ((YC_VID_TEXTURE_ORDER_FLAT.rawValue + 1 + 1)..<YC_VID_TEXTURE_ORDER_ROOF.rawValue).contains(index) {
+                self.layers.append(self.layers[Int(YC_VID_TEXTURE_ORDER_FLAT.rawValue) + 1])
+            } else {
+                let layer = SKNode()
+                layer.zPosition = .init(index)
+                
+                self.addChild(layer)
+                self.layers.append(layer)
+            }
+        }
     }
     
     deinit {
@@ -144,7 +156,6 @@ private extension MapScene {
             )
                         
             self.textures[texture.uuid] = texture
-            self.addChild(texture.node)
             
             // allocate and copy the handler. free later within invalidation
             destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
@@ -194,6 +205,11 @@ private extension MapScene {
         
         texture.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF
         
+        if texture.order != order {
+            texture.node.removeFromParent()
+            self.layers[Int(order.rawValue)].addChild(texture.node)
+        }
+        
         return YC_VID_STATUS_OK
     }
     
@@ -231,17 +247,17 @@ private extension MapScene {
          
         let side: CGFloat = .init(texture.grid)
         
-        let xScaled = (side - .init(texture.indexes.x)) / side
-        let yScaled = .init(texture.indexes.y) / side
-                
-//        let sum = xScaled + yScaled
-
-        let layerOrdered: CGFloat = .init(texture.order?.rawValue ?? 0) / .init(YC_VID_TEXTURE_ORDER_COUNT.rawValue - 1)
-        let tileOrdered: CGFloat = 
-        /*(sum > xScaled && sum > yScaled ? yScaled - xScaled : xScaled - yScaled) +*/ (xScaled + side * yScaled)
+        let x: CGFloat = side - .init(texture.indexes.x)
+        let y: CGFloat = .init(texture.indexes.y)
         
-        texture.node.zPosition = layerOrdered + tileOrdered
-            
+        let sum = x + y
+        let square = side * side
+
+        texture.node.zPosition =
+            .init((texture.order?.rawValue ?? 0)) +
+            ((sum > x && sum > y ? y - x : x - y) / square) +
+            ((x + side * y) / square)
+
         return YC_VID_STATUS_OK
     }
 }

@@ -34,7 +34,7 @@ extension Cache {
                 
                 convenience
                 init(raw texture: yc_res_frm_texture_t, shift: yc_res_frm_shift_t, palette: yc_res_pal_parse_result_t) {
-                    let count = Int(texture.dimensions.horizontal * texture.dimensions.vertical) * 4
+                    let count = Int(texture.dimensions.horizontal) * Int(texture.dimensions.vertical) * 4
                     var bytes: [UInt8] = .init(repeating: 0, count: count)
                     
                     for v_idx in 0..<Int(texture.dimensions.vertical) {
