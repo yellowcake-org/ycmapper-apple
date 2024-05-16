@@ -29,8 +29,8 @@ extension MapScene {
         var indexes: yc_vid_indexes_t
         var grid: size_t
         var order: yc_vid_texture_order_t?
-        var visibility: yc_vid_texture_visibility_t
-        var isEnabled: Bool = true
+        var visibility: yc_vid_texture_visibility_t { didSet { self.update() } }
+        var isEnabled: Bool = true { didSet { self.update() } }
 
         init(
             uuid: UUID,
@@ -50,6 +50,10 @@ extension MapScene {
             self.grid = grid
             self.order = order
             self.visibility = visibility
+        }
+        
+        func update() {
+            self.node.isHidden = self.visibility == YC_VID_TEXTURE_VISIBILITY_OFF || !self.isEnabled
         }
     }
 }

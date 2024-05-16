@@ -14,6 +14,9 @@ extension MapView {
         var error: Swift.Error?
         enum Error: Swift.Error { case path, parsing, loading, rendering }
         
+        var url: URL? = nil
+        
+        @Published
         var scene: MapScene? = nil
         
         @Published
@@ -30,7 +33,7 @@ extension MapView {
         var elevations: [Elevation] = [.empty(), .empty(), .empty()]
         
         @Published
-        var elevation: Elevation = .empty() { didSet { /* re-render */  } }
+        var elevation: Elevation = .empty() { didSet { self.elevated() } }
         struct Elevation: Hashable, Equatable, Identifiable {
             static func empty() -> Self { .init(idx: 0, ptr: nil) }
             
@@ -74,11 +77,9 @@ extension MapView {
         private struct Queues {
             let working: DispatchQueue = .init(label: "\(Self.self)-working")
         }
-        
+                
         private var yc_map_result: yc_res_map_parse_result_t? {
-            didSet {
-                self.state.hasOpenedMap = self.yc_map_result != nil
-            }
+            didSet { self.state.hasOpenedMap = self.yc_map_result != nil }
         }
     }
 }
@@ -96,16 +97,25 @@ extension MapView.Model {
 }
 
 extension MapView.Model {
+    private func root(url: URL) throws -> URL {
+        var root = url.deletingLastPathComponent()
+        guard root.lastPathComponent == "MAPS" else { throw Error.path }
+        root = root.deletingLastPathComponent()
+        
+        return root
+    }
+    
     func open(url: URL) {
         self.state.isProcessing = true
         self.queues.working.async(execute: {
             defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
             
-            var root = url.deletingLastPathComponent()
-            guard root.lastPathComponent == "MAPS" else { self.error = Error.path; return }
-            root = root.deletingLastPathComponent()
+            let root: URL
+            do { root = try self.root(url: url) } catch { return self.error = error }
             
+            self.url = url
             var fetcher = Fetcher(map: url, root: root)
+            
             var fetchers = yc_res_map_parse_db_api_t(
                 context: withUnsafeMutablePointer(to: &fetcher, { $0 })
             ) { pid, result, ctx in
@@ -147,15 +157,15 @@ extension MapView.Model {
                 else { self.error = Error.parsing; return }
                 
                 self.yc_map_result = result
-                self.setup(url: url, fetcher: fetcher)
+                self.setup()
             })
         })
     }
 }
 
-private extension MapView .Model{
-    func setup(url: URL, fetcher: Fetcher) {
-        guard let yc_map_result else { fatalError() }
+private extension MapView.Model{
+    func setup() {
+        guard let yc_map_result else { return assertionFailure() }
         
         self.elevations = [
             (0, yc_map_result.map.pointee.levels.0),
@@ -163,12 +173,34 @@ private extension MapView .Model{
             (2, yc_map_result.map.pointee.levels.2),
         ].map({ .init(idx: $0.0, ptr: $0.1) })
         
-        // re-update on changes
-        self.title = url.lastPathComponent
-        self.export.filename = url.deletingPathExtension().lastPathComponent.appending("-\(self.elevation.idx + 1)")
-        
         self.elevation = self.elevations.first ?? .empty()
-        do { self.scene = try .init(fetcher: fetcher, level: self.elevation.ptr.pointee) }
-        catch { self.error = error }
+    }
+}
+
+private extension MapView.Model {
+    func elevated() {
+        guard let url else { return assertionFailure() }
+        self.scene = nil
+        
+        self.state.isProcessing = true
+        self.queues.working.async(execute: {
+            defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
+            
+            do { 
+                let root = try self.root(url: url)
+                let fetcher = Fetcher(map: url, root: root)
+                
+                let scene = try MapScene(fetcher: fetcher, level: self.elevation.ptr.pointee)
+                
+                DispatchQueue.main.async(execute: {
+                    self.title = url.lastPathComponent
+                    self.export.filename = url.deletingPathExtension().lastPathComponent.appending("-\(self.elevation.idx + 1)")
+                    
+                    self.layers = .init(repeating: true, count: Int(YC_VID_TEXTURE_ORDER_COUNT.rawValue))
+                    self.scene = scene
+                })
+            }
+            catch { DispatchQueue.main.async(execute: { self.error = error }) }
+        })
     }
 }

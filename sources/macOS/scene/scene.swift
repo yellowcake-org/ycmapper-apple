@@ -15,8 +15,6 @@ class MapScene: SKScene {
                 texture.isEnabled = texture.order.flatMap({
                     self.enabled.contains(yc_vid_texture_order_t(rawValue: $0.rawValue))
                 }) ?? false
-                
-                texture.node.isHidden = texture.visibility == YC_VID_TEXTURE_VISIBILITY_OFF || !texture.isEnabled
             })
         }
     }
@@ -231,8 +229,6 @@ private extension MapScene {
     ) -> yc_vid_status_t {
         guard let raw = texture else { return YC_VID_STATUS_INPUT }
         let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
-        
-        texture.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF || !texture.isEnabled
         
         if texture.order != order {
             texture.node.removeFromParent()
