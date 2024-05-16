@@ -55,7 +55,18 @@ extension MapView {
         @Published
         var layers: [Bool] = .init(repeating: true, count: Int(YC_VID_TEXTURE_ORDER_COUNT.rawValue)) {
             didSet {
-                // re-render
+                var enabled: [yc_vid_texture_order_t] = []
+                
+                for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
+                    if self.layers[Int(index)] { enabled.append(.init(index)) }
+                }
+                
+                self.scene?.enabled = enabled
+
+                self.scene?.isPaused = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100), execute: {
+                    self.scene?.isPaused = true
+                })
             }
         }
         

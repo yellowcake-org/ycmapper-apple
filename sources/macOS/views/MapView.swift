@@ -84,28 +84,15 @@ struct MapView: View {
             ScrollViewReader { scroll in
                 ScrollView([.horizontal, .vertical], content: {
                     SpriteView(scene: scene)
-                        .frame(width: scene.size.width, height: scene.size.height)
-                        .background(.clear)
                         .id(0)
+                        .background(.clear)
+                        .frame(width: scene.size.width, height: scene.size.height)
                         .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
                         .onAppear(perform: {
-                            DispatchQueue.main.async(execute: {
-                                self.model.scene?.view?.allowsTransparency = true
-                                self.model.scene?.view?.ignoresSiblingOrder = true
-                                self.model.scene?.view?.disableDepthStencilBuffer = true
-                                self.model.scene?.view?.shouldCullNonVisibleNodes = true
-                                
-                                self.model.scene?.view?.preferredFramesPerSecond = 60
-                                
-                                self.model.scene?.view?.showsFPS = true
-                                self.model.scene?.view?.showsDrawCount = true
-                                self.model.scene?.view?.showsNodeCount = true
-                                self.model.scene?.view?.showsQuadCount = true
-                                
-                                DispatchQueue.main.async(execute: {
-                                    self.model.scene?.isPaused = true
-                                })
-                            })
+                            DispatchQueue.main.asyncAfter(
+                                deadline: .now() + .milliseconds(100),
+                                execute: { self.model.scene?.isPaused = true }
+                            )
                         })
                 })
                 .frame(width: geometry.size.width, height: geometry.size.height)

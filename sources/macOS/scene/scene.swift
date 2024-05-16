@@ -9,6 +9,17 @@ import SpriteKit
 
 class MapScene: SKScene {
     public let cache: Cache
+    public var enabled: [yc_vid_texture_order_t] = [] {
+        didSet { 
+            self.textures.forEach({ _, texture in
+                texture.isEnabled = texture.order.flatMap({
+                    self.enabled.contains(yc_vid_texture_order_t(rawValue: $0.rawValue))
+                }) ?? false
+                
+                texture.node.isHidden = texture.visibility == YC_VID_TEXTURE_VISIBILITY_OFF || !texture.isEnabled
+            })
+        }
+    }
     
     private var yc_level: yc_res_map_level_t
     
@@ -17,7 +28,7 @@ class MapScene: SKScene {
     private var yc_callbacks: yc_vid_texture_api_t?
 
     private var layers: [SKNode] = []
-    private var textures: [UUID : Texture] = .init() // TODO: Better get rid of it and have handles to be direct pointers to the texture.
+    private var textures: [UUID : Texture] = .init()
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -26,6 +37,10 @@ class MapScene: SKScene {
     init(fetcher: Fetcher, level: yc_res_map_level_t) throws {
         self.cache = try .init(fetcher: fetcher)
         self.yc_level = level
+        
+        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
+            self.enabled.append(.init(index))
+        }
         
         super.init(size: .init(width: 8000, height: 3600))
         
@@ -47,9 +62,12 @@ class MapScene: SKScene {
                 return scene.invalidate(texture: texture)
             },
             is_equal: { lhs, rhs in
-                lhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-                ==
-                rhs?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
+                guard let lhs, let rhs else { return false }
+                
+                let lt: Texture = Unmanaged.fromOpaque(lhs.pointee.handle).takeUnretainedValue()
+                let rt: Texture = Unmanaged.fromOpaque(rhs.pointee.handle).takeUnretainedValue()
+                
+                return lt == rt
             },
             set_visibility: { texture, visibility, order, ctx in
                 guard let ctx else { return YC_VID_STATUS_CORRUPTED }
@@ -104,8 +122,32 @@ class MapScene: SKScene {
     
     deinit {
         if var yc_view {
-            yc_vid_view_invalidate(&yc_view, withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }))
+            yc_vid_view_invalidate(
+                &yc_view,
+                withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 })
+            )
         }
+    }
+}
+
+// MARK: - Lifecycle
+extension MapScene {
+    override func didMove(to view: SKView) {
+        super.didMove(to: view)
+        
+        DispatchQueue.main.async(execute: {
+            self.view?.allowsTransparency = true
+            self.view?.ignoresSiblingOrder = true
+            self.view?.disableDepthStencilBuffer = true
+            self.view?.shouldCullNonVisibleNodes = true
+            
+            self.view?.preferredFramesPerSecond = 60
+            
+            self.view?.showsFPS = true
+            self.view?.showsDrawCount = true
+            self.view?.showsNodeCount = true
+            self.view?.showsQuadCount = true
+        })
     }
 }
 
@@ -113,14 +155,18 @@ class MapScene: SKScene {
 
 extension MapScene {
     override func update(_ currentTime: TimeInterval) {
-        var seconds = yc_vid_time_seconds(value: 0, scale: self.yc_view!.time.scale)
+        var seconds = yc_vid_time_seconds(
+            value: 1,
+            scale: self.yc_view!.time.scale
+        )
+        
         let tick_status = yc_vid_view_frame_tick(
             withUnsafeMutablePointer(to: &self.yc_view!, { $0 }),
             withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }),
             &seconds
         )
         
-        guard tick_status == YC_VID_STATUS_OK else { fatalError() }
+        guard tick_status == YC_VID_STATUS_OK else { return assertionFailure() }
     }
 }
 
@@ -156,32 +202,20 @@ private extension MapScene {
             )
                         
             self.textures[texture.uuid] = texture
-            
-            // allocate and copy the handler. free later within invalidation
-            destination.pointee.textures.advanced(by: index).pointee.handle = .allocate(
-                byteCount: MemoryLayout<UUID>.size,
-                alignment: 0
-            )
-            
-            destination.pointee.textures.advanced(by: index).pointee.handle.copyMemory(
-                from: withUnsafePointer(to: texture.uuid, { $0 }),
-                byteCount: MemoryLayout<UUID>.size
-            )
+            destination.pointee.textures.advanced(by: index).pointee.handle = Unmanaged.passUnretained(texture).toOpaque()
         }
         
         return YC_VID_STATUS_OK
     }
     
     func invalidate(texture: UnsafeMutablePointer<yc_vid_texture_t>?) -> yc_vid_status_t {
-        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        else { return YC_VID_STATUS_INPUT }
+        guard let raw = texture else { return YC_VID_STATUS_INPUT }
+        let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
+
+        raw.pointee.handle = nil
         
-        // freeing what allocated in init ^^^
-        texture?.pointee.handle.deallocate()
-        texture?.pointee.handle = nil
-        
-        self.textures[uuid]?.node.removeFromParent()
-        self.textures.removeValue(forKey: uuid)
+        self.textures.removeValue(forKey: texture.uuid)
+        texture.node.removeFromParent()
         
         return YC_VID_STATUS_OK
     }
@@ -195,20 +229,18 @@ private extension MapScene {
         visibility: yc_vid_texture_visibility_t,
         order: yc_vid_texture_order_t
     ) -> yc_vid_status_t {
-        guard let texture = texture else { return YC_VID_STATUS_INPUT }
+        guard let raw = texture else { return YC_VID_STATUS_INPUT }
+        let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
         
-        let uuid = texture.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        guard self.textures[uuid] != nil else { return YC_VID_STATUS_CORRUPTED }
-        
-        guard let texture = self.textures[uuid]
-        else { return YC_VID_STATUS_CORRUPTED }
-        
-        texture.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF
+        texture.node.isHidden = visibility == YC_VID_TEXTURE_VISIBILITY_OFF || !texture.isEnabled
         
         if texture.order != order {
             texture.node.removeFromParent()
             self.layers[Int(order.rawValue)].addChild(texture.node)
         }
+        
+        texture.order = order
+        texture.visibility = visibility
         
         return YC_VID_STATUS_OK
     }
@@ -217,11 +249,8 @@ private extension MapScene {
         texture: UnsafeMutablePointer<yc_vid_texture_t>?,
         coordinates: yc_vid_coordinates_t
     ) -> yc_vid_status_t {
-        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        else { return YC_VID_STATUS_INPUT }
-        
-        guard let texture = self.textures[uuid]
-        else { return YC_VID_STATUS_CORRUPTED }
+        guard let raw = texture else { return YC_VID_STATUS_INPUT }
+        let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
                 
         let x = CGFloat(coordinates.x) + texture.frame.shift.x
         let y = self.size.height - (CGFloat(coordinates.y) + texture.frame.shift.y)
@@ -236,27 +265,19 @@ private extension MapScene {
         indexes: yc_vid_indexes_t,
         scale: size_t
     ) -> yc_vid_status_t {
-        guard let uuid = texture?.pointee.handle.assumingMemoryBound(to: UUID.self).pointee
-        else { return YC_VID_STATUS_INPUT }
-        
-        guard let texture = self.textures[uuid]
-        else { return YC_VID_STATUS_CORRUPTED }
+        guard let raw = texture else { return YC_VID_STATUS_INPUT }
+        let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
         
         texture.grid = scale
         texture.indexes = indexes
          
         let side: CGFloat = .init(texture.grid)
+        let square = side * side
         
         let x: CGFloat = side - .init(texture.indexes.x)
         let y: CGFloat = .init(texture.indexes.y)
-        
-        let sum = x + y
-        let square = side * side
 
-        texture.node.zPosition =
-            .init((texture.order?.rawValue ?? 0)) +
-            ((sum > x && sum > y ? y - x : x - y) / square) +
-            ((x + side * y) / square)
+        texture.node.zPosition = ((x + side * y) / square)
 
         return YC_VID_STATUS_OK
     }

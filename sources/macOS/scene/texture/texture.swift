@@ -9,7 +9,19 @@ import Foundation
 import SpriteKit
 
 extension MapScene {
-    class Texture {
+    class Texture: Equatable {
+        static func == (lhs: MapScene.Texture, rhs: MapScene.Texture) -> Bool {
+            lhs.uuid == rhs.uuid &&
+            lhs.frame.shift == rhs.frame.shift &&
+            lhs.node == rhs.node &&
+            lhs.indexes.x == rhs.indexes.x &&
+            lhs.indexes.y == rhs.indexes.y &&
+            lhs.grid == rhs.grid &&
+            lhs.order?.rawValue == rhs.order?.rawValue &&
+            lhs.visibility.rawValue == rhs.visibility.rawValue &&
+            lhs.isEnabled == rhs.isEnabled
+        }
+        
         let uuid: UUID
         let frame: Cache.Sprite.Animation.Frame
         let node: SKSpriteNode
@@ -18,7 +30,8 @@ extension MapScene {
         var grid: size_t
         var order: yc_vid_texture_order_t?
         var visibility: yc_vid_texture_visibility_t
-        
+        var isEnabled: Bool = true
+
         init(
             uuid: UUID,
             frame: Cache.Sprite.Animation.Frame,
