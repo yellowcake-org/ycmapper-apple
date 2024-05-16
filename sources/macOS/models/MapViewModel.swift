@@ -179,8 +179,13 @@ private extension MapView.Model{
 
 private extension MapView.Model {
     func elevated() {
-        guard let url else { return assertionFailure() }
+        guard let url 
+        else { return assertionFailure() }
+        
         self.scene = nil
+        
+        guard !self.elevation.isEmpty 
+        else { return }
         
         self.state.isProcessing = true
         self.queues.working.async(execute: {
