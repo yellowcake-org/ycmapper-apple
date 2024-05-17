@@ -12,7 +12,7 @@ extension MapView {
     class Model: ObservableObject {
         @Published
         var error: Swift.Error?
-        enum Error: Swift.Error { case path, parsing, loading, rendering }
+        enum Error: Swift.Error { case path, parsing, loading, rendering, snapshotting }
         
         var url: URL? = nil
         
@@ -206,6 +206,30 @@ private extension MapView.Model {
                 })
             }
             catch { DispatchQueue.main.async(execute: { self.error = error }) }
+        })
+    }
+}
+
+extension MapView.Model {
+    func snapshot() {
+        guard let scene else { return assertionFailure() }
+        guard let view = scene.view else { return assertionFailure() }
+        
+        self.state.isProcessing = true
+        self.queues.working.async(execute: {
+            defer { DispatchQueue.main.async(execute: { self.state.isProcessing = false }) }
+            
+            let snapshot = view.texture(from: scene)
+            guard let snapshot else { return self.error = Error.snapshotting }
+            
+            self.export.document = .init(
+                image: .init(
+                    cgImage: snapshot.cgImage(),
+                    size: snapshot.size()
+                )
+            )
+            
+            DispatchQueue.main.async(execute: { self.state.isExporting = true })
         })
     }
 }

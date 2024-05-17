@@ -43,7 +43,7 @@ struct MapView: View {
             document: self.model.export.document,
             contentType: ImageDocument.writableContentTypes.first!,
             defaultFilename: self.model.export.filename,
-            onCompletion: { _ in }
+            onCompletion: { _ in self.model.export.document = nil }
         )
     }
     
@@ -82,11 +82,22 @@ struct MapView: View {
     private func content(scene: MapScene) -> some View {
         GeometryReader { geometry in
             ScrollViewReader { scroll in
-                ScrollView([.horizontal, .vertical], content: {
-                    SpriteView(scene: scene)
+                PositionReadableScrollView(axes: [.horizontal, .vertical], content: {
+                    Rectangle()
                         .id(0)
+                        .foregroundColor(.clear)
                         .background(.clear)
                         .frame(width: scene.size.width, height: scene.size.height)
+                }, onScroll: { point in
+                    self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
+                    self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
+                    self.model.scene?.camera?.position = .init(x: point.x, y: scene.size.height - point.y)
+                })
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .background(content: {
+                    SpriteView(scene: scene)
+                        .background(.clear)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
                         .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
                         .onAppear(perform: {
                             DispatchQueue.main.asyncAfter(
@@ -95,7 +106,6 @@ struct MapView: View {
                             )
                         })
                 })
-                .frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
     }
@@ -169,8 +179,7 @@ struct MapView: View {
         ToolbarItem(content: {
             Button(
                 action: {
-//                    self.model.export.document = .init(image: self.model.canvas!)
-                    self.model.state.isExporting.toggle()
+                    self.model.snapshot()
                 },
                 label: { Label(title: { Text("screen.map.sheet.action") }, icon: { Image(systemName: "square.and.arrow.up") })}
             )
@@ -198,3 +207,25 @@ extension yc_vid_texture_order_t {
         }
     }
 }
+
+struct PositionReadableScrollView<Content>: View where Content: View {
+    let axes: Axis.Set
+    let content: () -> Content
+    let onScroll: (CGPoint) -> Void
+    
+    var body: some View {
+        ScrollView(self.axes) {
+            content()
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear
+                            .onChange(of: proxy.frame(in: .named("scrollID")).origin) { position, _ in
+                                onScroll(.init(x: -position.x, y: -position.y))
+                            }
+                    }
+                )
+        }
+        .coordinateSpace(.named("scrollID"))
+    }
+}
+

@@ -41,10 +41,12 @@ class MapScene: SKScene {
         }
         
         super.init(size: .init(width: 8000, height: 3600))
-        
-        self.scaleMode = .aspectFill
-        self.anchorPoint = .init(x: 0.0, y: 0.0)
         self.backgroundColor = .clear
+        
+        let camera = SKCameraNode()
+        
+        self.camera = camera
+        self.addChild(camera)
         
         self.yc_callbacks = .init(
             initialize: { fid, orientation, destination, ctx  in
