@@ -89,8 +89,6 @@ struct MapView: View {
                         .background(.clear)
                         .frame(width: scene.size.width, height: scene.size.height)
                 }, onScroll: { point in
-                    self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
-                    self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
                     self.model.scene?.camera?.position = .init(x: point.x, y: scene.size.height - point.y)
                 })
                 .frame(width: geometry.size.width, height: geometry.size.height)
@@ -99,6 +97,10 @@ struct MapView: View {
                         .background(.clear)
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
+                        .onAppear(perform: {
+                            self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
+                            self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
+                        })
                         .onAppear(perform: {
                             DispatchQueue.main.asyncAfter(
                                 deadline: .now() + .milliseconds(100),
