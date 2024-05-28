@@ -90,6 +90,10 @@ struct MapView: View {
                         .frame(width: scene.size.width, height: scene.size.height)
                 }, onScroll: { point in
                     self.model.scene?.camera?.position = .init(x: point.x, y: scene.size.height - point.y)
+                    
+                    // TODO: Update this in proper place.
+                    self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
+                    self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
                 })
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .background(content: {
@@ -100,12 +104,6 @@ struct MapView: View {
                         .onAppear(perform: {
                             self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
                             self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
-                        })
-                        .onAppear(perform: {
-                            DispatchQueue.main.asyncAfter(
-                                deadline: .now() + .milliseconds(100),
-                                execute: { self.model.scene?.isPaused = true }
-                            )
                         })
                 })
             }

@@ -28,6 +28,9 @@ class MapScene: SKScene {
     private var layers: [SKNode] = []
     private var textures: [UUID : Texture] = .init()
     
+    private var last: TimeInterval?
+    private var accumulated: TimeInterval = 0.0
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -42,6 +45,7 @@ class MapScene: SKScene {
         
         super.init(size: .init(width: 8000, height: 3600))
         self.backgroundColor = .clear
+        self.scaleMode = .fill
         
         let camera = SKCameraNode()
         
@@ -118,6 +122,8 @@ class MapScene: SKScene {
                 self.layers.append(layer)
             }
         }
+        
+        self.cache.invalidate()
     }
     
     deinit {
@@ -131,6 +137,7 @@ class MapScene: SKScene {
 }
 
 // MARK: - Lifecycle
+
 extension MapScene {
     override func didMove(to view: SKView) {
         super.didMove(to: view)
@@ -141,13 +148,18 @@ extension MapScene {
             self.view?.disableDepthStencilBuffer = true
             self.view?.shouldCullNonVisibleNodes = true
             
-            self.view?.preferredFramesPerSecond = 60
-            
             self.view?.showsFPS = true
             self.view?.showsDrawCount = true
             self.view?.showsNodeCount = true
             self.view?.showsQuadCount = true
         })
+    }
+    
+    override func didChangeSize(_ oldSize: CGSize) {
+        guard let view else { return }
+        
+        self.camera!.xScale = view.bounds.size.width / self.size.width
+        self.camera!.yScale = view.bounds.size.height / self.size.height
     }
 }
 
@@ -155,8 +167,18 @@ extension MapScene {
 
 extension MapScene {
     override func update(_ currentTime: TimeInterval) {
+        guard let last else { return self.last = currentTime }
+        defer { self.last = currentTime }
+        
+        let difference = (currentTime - last) + self.accumulated
+        
+        let units = floor(difference * .init(self.yc_view!.time.scale))
+        guard units >= 1.0 else { return self.accumulated = difference }
+        
+        self.accumulated -= units / .init(self.yc_view!.time.scale)
+        
         var seconds = yc_vid_time_seconds(
-            value: 1,
+            value: .init(units),
             scale: self.yc_view!.time.scale
         )
         
@@ -189,7 +211,9 @@ private extension MapScene {
         destination.pointee.keyframe_idx = animation.keyframe_idx
         
         destination.pointee.count = animation.frames.count
-        destination.pointee.textures = .allocate(capacity: animation.frames.count) // will be freed by the view
+        
+        // TODO: Allocate in the lib, use opaque pointers from here.
+        destination.pointee.textures = .allocate(capacity: animation.frames.count * MemoryLayout<OpaquePointer>.size)
         
         for (index, frame) in animation.frames.enumerated() {
             let texture: Texture = .init(
@@ -250,8 +274,8 @@ private extension MapScene {
         guard let raw = texture else { return YC_VID_STATUS_INPUT }
         let texture: Texture = Unmanaged.fromOpaque(raw.pointee.handle).takeUnretainedValue()
                 
-        let x = CGFloat(coordinates.x) + texture.frame.shift.x
-        let y = self.size.height - (CGFloat(coordinates.y) + texture.frame.shift.y)
+        let x = CGFloat(coordinates.x)
+        let y = self.size.height - CGFloat(coordinates.y)
         
         texture.node.position = .init(x: x, y: y)
         

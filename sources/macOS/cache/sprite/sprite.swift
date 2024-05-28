@@ -59,8 +59,8 @@ extension Cache {
                     
                     self.init(
                         shift: .init(
-                            x: CGFloat(shift.horizontal + texture.shift.horizontal - Int16(texture.dimensions.horizontal) / 2),
-                            y: CGFloat(shift.vertical + texture.shift.vertical)
+                            x: size.width / 2 - (CGFloat(texture.shift.horizontal) + CGFloat(shift.horizontal)),
+                            y: CGFloat(shift.vertical) + CGFloat(texture.shift.vertical)
                         ),
                         texture: .init(data: .init(bytes: &bytes, count: count), size: size)
                     )

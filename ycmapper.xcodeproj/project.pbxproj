@@ -205,7 +205,6 @@
 /* Begin PBXFileReference section */
 		B406ECA92B0EA42B0008C796 /* io.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = io.swift; sourceTree = "<group>"; };
 		B406ECAD2B0EAE870008C796 /* fetchers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fetchers.swift; sourceTree = "<group>"; };
-		B406ECB02B0ED6AB0008C796 /* renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = renderer.swift; sourceTree = "<group>"; };
 		B4330C672BE295E800A223FA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B44715C22B12B983003E27C4 /* cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cache.swift; sourceTree = "<group>"; };
 		B44A98182B1192430025115E /* sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sprite.swift; sourceTree = "<group>"; };
@@ -254,7 +253,6 @@
 				B44715AB2B12B972003E27C4 /* cache */,
 				B406ECAC2B0EAE6D0008C796 /* fetchers */,
 				B45CE81F2BE9EBD700CE5C1F /* scene */,
-				B406ECAF2B0ED68C0008C796 /* renderer */,
 				B406ECA82B0EA41D0008C796 /* platform */,
 			);
 			path = macOS;
@@ -282,14 +280,6 @@
 				B406ECAD2B0EAE870008C796 /* fetchers.swift */,
 			);
 			path = fetchers;
-			sourceTree = "<group>";
-		};
-		B406ECAF2B0ED68C0008C796 /* renderer */ = {
-			isa = PBXGroup;
-			children = (
-				B406ECB02B0ED6AB0008C796 /* renderer.swift */,
-			);
-			path = renderer;
 			sourceTree = "<group>";
 		};
 		B4330C622BE2957500A223FA /* resources */ = {

@@ -65,11 +65,6 @@ extension MapView {
                 }
                 
                 self.scene?.enabled = enabled
-
-                self.scene?.isPaused = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100), execute: {
-                    self.scene?.isPaused = true
-                })
             }
         }
         

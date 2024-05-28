@@ -11,24 +11,15 @@ import SpriteKit
 extension MapScene {
     class Texture: Equatable {
         static func == (lhs: MapScene.Texture, rhs: MapScene.Texture) -> Bool {
-            lhs.uuid == rhs.uuid &&
-            lhs.frame.shift == rhs.frame.shift &&
-            lhs.node == rhs.node &&
-            lhs.indexes.x == rhs.indexes.x &&
-            lhs.indexes.y == rhs.indexes.y &&
-            lhs.grid == rhs.grid &&
-            lhs.order?.rawValue == rhs.order?.rawValue &&
-            lhs.visibility.rawValue == rhs.visibility.rawValue &&
-            lhs.isEnabled == rhs.isEnabled
+            lhs.uuid == rhs.uuid
         }
         
         let uuid: UUID
-        let frame: Cache.Sprite.Animation.Frame
         let node: SKSpriteNode
         
-        var indexes: yc_vid_indexes_t
         var grid: size_t
         var order: yc_vid_texture_order_t?
+        var indexes: yc_vid_indexes_t
         var visibility: yc_vid_texture_visibility_t { didSet { self.update() } }
         var isEnabled: Bool = true { didSet { self.update() } }
 
@@ -41,10 +32,12 @@ extension MapScene {
             visibility: yc_vid_texture_visibility_t
         ) {
             self.uuid = uuid
-            self.frame = frame
             
             self.node = .init(texture: frame.texture, size: frame.texture.size())
-            self.node.anchorPoint = .init(x: 0.0, y: 0.0)
+            self.node.anchorPoint = .init(
+                x: frame.shift.x / frame.texture.size().width,
+                y: frame.shift.y / frame.texture.size().height
+            )
             
             self.indexes = indexes
             self.grid = grid
