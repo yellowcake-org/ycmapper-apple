@@ -52,6 +52,18 @@ class MapScene: SKScene {
         self.camera = camera
         self.addChild(camera)
         
+        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
+            if ((YC_VID_TEXTURE_ORDER_FLAT.rawValue + 1 + 1)..<YC_VID_TEXTURE_ORDER_ROOF.rawValue).contains(index) {
+                self.layers.append(self.layers[Int(YC_VID_TEXTURE_ORDER_FLAT.rawValue) + 1])
+            } else {
+                let layer = SKNode()
+                layer.zPosition = .init(index)
+                
+                self.addChild(layer)
+                self.layers.append(layer)
+            }
+        }
+        
         self.yc_callbacks = .init(
             initialize: { fid, orientation, destination, ctx  in
                 guard let ctx else { return YC_VID_STATUS_CORRUPTED }
@@ -105,22 +117,11 @@ class MapScene: SKScene {
             withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 })
         )
         
-        enum Error: Swift.Error { case initialization }
         guard status == YC_VID_STATUS_OK else {
             self.yc_view = nil
+
+            enum Error: Swift.Error { case initialization }
             throw Error.initialization
-        }
-        
-        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
-            if ((YC_VID_TEXTURE_ORDER_FLAT.rawValue + 1 + 1)..<YC_VID_TEXTURE_ORDER_ROOF.rawValue).contains(index) {
-                self.layers.append(self.layers[Int(YC_VID_TEXTURE_ORDER_FLAT.rawValue) + 1])
-            } else {
-                let layer = SKNode()
-                layer.zPosition = .init(index)
-                
-                self.addChild(layer)
-                self.layers.append(layer)
-            }
         }
         
         self.cache.invalidate()
