@@ -29,6 +29,7 @@ class MapScene: SKScene {
     private var textures: [UUID : Texture] = .init()
     
     private var last: TimeInterval?
+    private var accumulated: TimeInterval = 0.0
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -143,7 +144,7 @@ extension MapScene {
         
         DispatchQueue.main.async(execute: {
             self.view?.allowsTransparency = true
-            self.view?.ignoresSiblingOrder = true
+            self.view?.ignoresSiblingOrder = false
             self.view?.disableDepthStencilBuffer = true
             self.view?.shouldCullNonVisibleNodes = true
             
@@ -170,8 +171,13 @@ extension MapScene {
         guard let last else { return }
         
         let difference = (currentTime - last)
-        let units = ceil(difference * .init(self.yc_view!.time.scale))
-
+        self.accumulated += difference
+        
+        let units: UInt = .init(floor(self.accumulated * .init(self.yc_view!.time.scale)))
+        guard units > 0 else { return }
+        
+        self.accumulated -= .init(units) / .init(self.yc_view!.time.scale)
+        
         var seconds = yc_vid_time_seconds(
             value: .init(units),
             scale: self.yc_view!.time.scale
@@ -200,15 +206,13 @@ private extension MapScene {
         let sprite: Cache.Sprite
         do { sprite = try self.cache.fetch(for: fid) } catch { return YC_VID_STATUS_CORRUPTED }
         
-        let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
+        let animation = sprite.animations[sprite.indexes[.init(orientation.rawValue)]]
+                
+        destination.pointee.count = animation.frames.count
+        destination.pointee.textures = .allocate(capacity: animation.frames.count * MemoryLayout<yc_vid_texture_t>.size)
         
         destination.pointee.fps = animation.fps
         destination.pointee.keyframe_idx = animation.keyframe_idx
-        
-        destination.pointee.count = animation.frames.count
-        
-        // TODO: Allocate in the lib, use opaque pointers from here.
-        destination.pointee.textures = .allocate(capacity: animation.frames.count * MemoryLayout<OpaquePointer>.size)
         
         for (index, frame) in animation.frames.enumerated() {
             let texture: Texture = .init(
