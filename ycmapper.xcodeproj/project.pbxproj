@@ -9,11 +9,11 @@
 /* Begin PBXBuildFile section */
 		B406ECAA2B0EA42B0008C796 /* io.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECA92B0EA42B0008C796 /* io.swift */; };
 		B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECAD2B0EAE870008C796 /* fetchers.swift */; };
-		B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406ECB02B0ED6AB0008C796 /* renderer.swift */; };
 		B4330C682BE295E800A223FA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B4330C672BE295E800A223FA /* Localizable.xcstrings */; };
 		B44715C32B12B983003E27C4 /* cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44715C22B12B983003E27C4 /* cache.swift */; };
 		B44A98192B1192430025115E /* sprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A98182B1192430025115E /* sprite.swift */; };
 		B44A981B2B11927D0025115E /* texture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44A981A2B11927D0025115E /* texture.swift */; };
+		B45CE8372BE9EBE900CE5C1F /* scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45CE8362BE9EBE900CE5C1F /* scene.swift */; };
 		B47F434C2B6A928E006BEFCC /* libycenv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31B02B03ECDF00DBB05B /* libycenv.a */; };
 		B47F434D2B6A928E006BEFCC /* libycres.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31BE2B03ECDF00DBB05B /* libycres.a */; };
 		B47F434E2B6A928E006BEFCC /* libycvid.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B49D31C22B03ECDF00DBB05B /* libycvid.a */; };
@@ -205,11 +205,11 @@
 /* Begin PBXFileReference section */
 		B406ECA92B0EA42B0008C796 /* io.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = io.swift; sourceTree = "<group>"; };
 		B406ECAD2B0EAE870008C796 /* fetchers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fetchers.swift; sourceTree = "<group>"; };
-		B406ECB02B0ED6AB0008C796 /* renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = renderer.swift; sourceTree = "<group>"; };
 		B4330C672BE295E800A223FA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B44715C22B12B983003E27C4 /* cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cache.swift; sourceTree = "<group>"; };
 		B44A98182B1192430025115E /* sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sprite.swift; sourceTree = "<group>"; };
 		B44A981A2B11927D0025115E /* texture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = texture.swift; sourceTree = "<group>"; };
+		B45CE8362BE9EBE900CE5C1F /* scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scene.swift; sourceTree = "<group>"; };
 		B49D300B2B03EB9900DBB05B /* ycmapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ycmapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B49D302A2B03EC5900DBB05B /* ycmapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ycmapper.swift; sourceTree = "<group>"; };
 		B49D302B2B03EC5900DBB05B /* MapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
@@ -252,7 +252,7 @@
 				B4ED1BF92BE13F2000942576 /* models */,
 				B44715AB2B12B972003E27C4 /* cache */,
 				B406ECAC2B0EAE6D0008C796 /* fetchers */,
-				B406ECAF2B0ED68C0008C796 /* renderer */,
+				B45CE81F2BE9EBD700CE5C1F /* scene */,
 				B406ECA82B0EA41D0008C796 /* platform */,
 			);
 			path = macOS;
@@ -280,15 +280,6 @@
 				B406ECAD2B0EAE870008C796 /* fetchers.swift */,
 			);
 			path = fetchers;
-			sourceTree = "<group>";
-		};
-		B406ECAF2B0ED68C0008C796 /* renderer */ = {
-			isa = PBXGroup;
-			children = (
-				B44A98172B1192390025115E /* texture */,
-				B406ECB02B0ED6AB0008C796 /* renderer.swift */,
-			);
-			path = renderer;
 			sourceTree = "<group>";
 		};
 		B4330C622BE2957500A223FA /* resources */ = {
@@ -322,6 +313,15 @@
 				B44A981A2B11927D0025115E /* texture.swift */,
 			);
 			path = texture;
+			sourceTree = "<group>";
+		};
+		B45CE81F2BE9EBD700CE5C1F /* scene */ = {
+			isa = PBXGroup;
+			children = (
+				B44A98172B1192390025115E /* texture */,
+				B45CE8362BE9EBE900CE5C1F /* scene.swift */,
+			);
+			path = scene;
 			sourceTree = "<group>";
 		};
 		B47F432C2B694C67006BEFCC /* Frameworks */ = {
@@ -655,7 +655,7 @@
 				B406ECAE2B0EAE870008C796 /* fetchers.swift in Sources */,
 				B406ECAA2B0EA42B0008C796 /* io.swift in Sources */,
 				B44A981B2B11927D0025115E /* texture.swift in Sources */,
-				B406ECB12B0ED6AB0008C796 /* renderer.swift in Sources */,
+				B45CE8372BE9EBE900CE5C1F /* scene.swift in Sources */,
 				B49D302C2B03EC5900DBB05B /* ycmapper.swift in Sources */,
 				B4F03C022B17A3FE00BD6449 /* image.swift in Sources */,
 				B4ED1BFD2BE16BD300942576 /* map.swift in Sources */,

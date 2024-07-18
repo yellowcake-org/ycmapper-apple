@@ -20,9 +20,8 @@ public class Fetcher {
         self.root = root
     }
     
-    public func sprite(
-        fid: UInt32
-    ) throws -> (yc_res_frm_parse_result_t, yc_res_pal_parse_result_t?) {
+    public func sprite(fid: UInt32) 
+    throws -> (yc_res_frm_parse_result_t, yc_res_pal_parse_result_t?) {
         var frm_result = yc_res_frm_parse_result_t()
         var pal_result: yc_res_pal_parse_result_t? = nil
         
@@ -144,7 +143,8 @@ public class Fetcher {
         return (frm_result, pal_result)
     }
     
-    public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) throws -> yc_res_pro_parse_result_t {
+    public func prototype(identifier pid: UInt32, for type: yc_res_pro_object_type_t) 
+    throws -> yc_res_pro_parse_result_t {
         let subpath = switch type {
         case YC_RES_PRO_OBJECT_TYPE_TILE: "PROTO/TILES/"
         case YC_RES_PRO_OBJECT_TYPE_ITEM: "PROTO/ITEMS/"
