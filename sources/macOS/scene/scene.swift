@@ -29,7 +29,6 @@ class MapScene: SKScene {
     private var textures: [UUID : Texture] = .init()
     
     private var last: TimeInterval?
-    private var accumulated: TimeInterval = 0.0
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -167,16 +166,12 @@ extension MapScene {
 
 extension MapScene {
     override func update(_ currentTime: TimeInterval) {
-        guard let last else { return self.last = currentTime }
         defer { self.last = currentTime }
+        guard let last else { return }
         
-        let difference = (currentTime - last) + self.accumulated
-        
-        let units = floor(difference * .init(self.yc_view!.time.scale))
-        guard units >= 1.0 else { return self.accumulated = difference }
-        
-        self.accumulated -= units / .init(self.yc_view!.time.scale)
-        
+        let difference = (currentTime - last)
+        let units = ceil(difference * .init(self.yc_view!.time.scale))
+
         var seconds = yc_vid_time_seconds(
             value: .init(units),
             scale: self.yc_view!.time.scale
