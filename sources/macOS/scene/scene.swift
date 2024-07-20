@@ -160,8 +160,42 @@ extension MapScene {
     
     override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
+        
+        self.resized()
         self.debugged()
     }
+}
+
+// MARK: - View Port
+extension MapScene {
+    private func updateViewPort() {
+        guard let camera = self.camera else { return }
+        guard camera.position != .zero else { return }
+        
+        var port = yc_vid_region_t(
+            origin: .init(
+                x: .init(max(0, floor(camera.position.x - self.size.width / 2))),
+                y: .init(max(0, floor(-camera.position.y - self.size.height / 2)))
+            ),
+            dimensions: .init(
+                horizontal: .init(self.size.width),
+                vertical: .init(self.size.height)
+            )
+        )
+        
+        debugPrint("[!] Viewport == \(port)")
+        
+        let status = yc_vid_view_port_set(
+            withUnsafeMutablePointer(to: &self.yc_view!, { $0 }),
+            withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }),
+            withUnsafeMutablePointer(to: &port, { $0 })
+        )
+        
+        assert(status == YC_VID_STATUS_OK)
+    }
+    
+    func moved() { self.updateViewPort() }
+    func resized() { self.updateViewPort() }
 }
 
 // MARK: - Cycling

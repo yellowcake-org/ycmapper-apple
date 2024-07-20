@@ -24,6 +24,7 @@ struct MapView: View {
                 self.empty()
             }
         })
+        .frame(minWidth: 640, minHeight: 480)
         .onDisappear(perform: { self.model.invalidate() })
         .navigationTitle(Text(self.model.title ?? ""))
         .toolbar(content: {
@@ -94,6 +95,8 @@ struct MapView: View {
                         x: point.x + geometry.size.width / 2,
                         y: -point.y - geometry.size.height / 2
                     )
+                    
+                    self.model.scene?.moved()
                 })
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .background(content: {
