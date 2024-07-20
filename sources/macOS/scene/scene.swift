@@ -141,27 +141,26 @@ class MapScene: SKScene {
 // MARK: - Lifecycle
 
 extension MapScene {
+    func debugged() {
+        self.view?.allowsTransparency = false
+        self.view?.ignoresSiblingOrder = false
+        self.view?.disableDepthStencilBuffer = true
+        self.view?.shouldCullNonVisibleNodes = true
+        
+        self.view?.showsDrawCount = true
+        self.view?.showsNodeCount = true
+        self.view?.showsQuadCount = true
+        self.view?.showsFPS = true
+    }
+    
     override func didMove(to view: SKView) {
         super.didMove(to: view)
-        
-        DispatchQueue.main.async(execute: {
-            self.view?.allowsTransparency = true
-            self.view?.ignoresSiblingOrder = false
-            self.view?.disableDepthStencilBuffer = true
-            self.view?.shouldCullNonVisibleNodes = true
-            
-            self.view?.showsFPS = true
-            self.view?.showsDrawCount = true
-            self.view?.showsNodeCount = true
-            self.view?.showsQuadCount = true
-        })
+        self.debugged()
     }
     
     override func didChangeSize(_ oldSize: CGSize) {
-        guard let view else { return }
-        
-        self.camera!.xScale = view.bounds.size.width / self.size.width
-        self.camera!.yScale = view.bounds.size.height / self.size.height
+        super.didChangeSize(oldSize)
+        self.debugged()
     }
 }
 
