@@ -43,9 +43,10 @@ class MapScene: SKScene {
             self.enabled.append(.init(index))
         }
         
-        super.init(size: .init(width: 8000, height: 3600))
+        super.init(size: .init(width: 0, height: 0))
+        
         self.backgroundColor = .clear
-        self.scaleMode = .fill
+        self.scaleMode = .resizeFill
         
         let camera = SKCameraNode()
         

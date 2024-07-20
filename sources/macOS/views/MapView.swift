@@ -87,13 +87,13 @@ struct MapView: View {
                         .id(0)
                         .foregroundColor(.clear)
                         .background(.clear)
-                        .frame(width: scene.size.width, height: scene.size.height)
+                        .frame(width: 8000, height: 3600)
                 }, onScroll: { point in
-                    self.model.scene?.camera?.position = .init(x: point.x, y: scene.size.height - point.y)
-                    
-                    // TODO: Update this in proper place.
-                    self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
-                    self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
+                    self.model.scene?.size = geometry.size
+                    self.model.scene?.camera?.position = .init(
+                        x: point.x + geometry.size.width / 2,
+                        y: -point.y - geometry.size.height / 2
+                    )
                 })
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .background(content: {
@@ -215,17 +215,17 @@ struct PositionReadableScrollView<Content>: View where Content: View {
     
     var body: some View {
         ScrollView(self.axes) {
-            content()
+            self.content()
                 .background(
                     GeometryReader { proxy in
                         Color.clear
-                            .onChange(of: proxy.frame(in: .named("scrollID")).origin) { position, _ in
-                                onScroll(.init(x: -position.x, y: -position.y))
+                            .onChange(of: proxy.frame(in: .named("scroll")).origin) { position, _ in
+                                self.onScroll(.init(x: -position.x, y: -position.y))
                             }
                     }
                 )
         }
-        .coordinateSpace(.named("scrollID"))
+        .coordinateSpace(.named("scroll"))
     }
 }
 
