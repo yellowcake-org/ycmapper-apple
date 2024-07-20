@@ -101,10 +101,6 @@ struct MapView: View {
                         .background(.clear)
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .onAppear(perform: { withAnimation(.none, { scroll.scrollTo(0, anchor: .center) }) })
-                        .onAppear(perform: {
-                            self.model.scene?.camera?.xScale = geometry.size.width / scene.size.width
-                            self.model.scene?.camera?.yScale = geometry.size.height / scene.size.height
-                        })
                 })
             }
         }
