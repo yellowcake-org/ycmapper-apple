@@ -143,7 +143,6 @@ extension MapView.Model {
                 return YC_RES_MAP_STATUS_OK
             }
             
-            
             var result = yc_res_map_parse_result_t(map: nil)
             let status = yc_res_map_parse(url.path, &io_fs_api, &fetchers, &result)
 
