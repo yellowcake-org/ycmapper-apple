@@ -29,6 +29,7 @@ class MapScene: SKScene {
     private var textures: [UUID : Texture] = .init()
     
     private var last: TimeInterval?
+    private var accumulated: TimeInterval = 0.0
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -42,14 +43,27 @@ class MapScene: SKScene {
             self.enabled.append(.init(index))
         }
         
-        super.init(size: .init(width: 8000, height: 3600))
+        super.init(size: .init(width: 0, height: 0))
+        
         self.backgroundColor = .clear
-        self.scaleMode = .fill
+        self.scaleMode = .resizeFill
         
         let camera = SKCameraNode()
         
         self.camera = camera
         self.addChild(camera)
+        
+        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
+            if ((YC_VID_TEXTURE_ORDER_FLAT.rawValue + 1 + 1)..<YC_VID_TEXTURE_ORDER_ROOF.rawValue).contains(index) {
+                self.layers.append(self.layers[Int(YC_VID_TEXTURE_ORDER_FLAT.rawValue) + 1])
+            } else {
+                let layer = SKNode()
+                layer.zPosition = .init(index)
+                
+                self.addChild(layer)
+                self.layers.append(layer)
+            }
+        }
         
         self.yc_callbacks = .init(
             initialize: { fid, orientation, destination, ctx  in
@@ -104,22 +118,11 @@ class MapScene: SKScene {
             withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 })
         )
         
-        enum Error: Swift.Error { case initialization }
         guard status == YC_VID_STATUS_OK else {
             self.yc_view = nil
+
+            enum Error: Swift.Error { case initialization }
             throw Error.initialization
-        }
-        
-        for index in 0..<YC_VID_TEXTURE_ORDER_COUNT.rawValue {
-            if ((YC_VID_TEXTURE_ORDER_FLAT.rawValue + 1 + 1)..<YC_VID_TEXTURE_ORDER_ROOF.rawValue).contains(index) {
-                self.layers.append(self.layers[Int(YC_VID_TEXTURE_ORDER_FLAT.rawValue) + 1])
-            } else {
-                let layer = SKNode()
-                layer.zPosition = .init(index)
-                
-                self.addChild(layer)
-                self.layers.append(layer)
-            }
         }
         
         self.cache.invalidate()
@@ -138,28 +141,61 @@ class MapScene: SKScene {
 // MARK: - Lifecycle
 
 extension MapScene {
+    func debugged() {
+        self.view?.allowsTransparency = false
+        self.view?.ignoresSiblingOrder = false
+        self.view?.disableDepthStencilBuffer = true
+        self.view?.shouldCullNonVisibleNodes = true
+        
+        self.view?.showsDrawCount = true
+        self.view?.showsNodeCount = true
+        self.view?.showsQuadCount = true
+        self.view?.showsFPS = true
+    }
+    
     override func didMove(to view: SKView) {
         super.didMove(to: view)
-        
-        DispatchQueue.main.async(execute: {
-            self.view?.allowsTransparency = true
-            self.view?.ignoresSiblingOrder = true
-            self.view?.disableDepthStencilBuffer = true
-            self.view?.shouldCullNonVisibleNodes = true
-            
-            self.view?.showsFPS = true
-            self.view?.showsDrawCount = true
-            self.view?.showsNodeCount = true
-            self.view?.showsQuadCount = true
-        })
+        self.debugged()
     }
     
     override func didChangeSize(_ oldSize: CGSize) {
-        guard let view else { return }
+        super.didChangeSize(oldSize)
         
-        self.camera!.xScale = view.bounds.size.width / self.size.width
-        self.camera!.yScale = view.bounds.size.height / self.size.height
+        self.resized()
+        self.debugged()
     }
+}
+
+// MARK: - View Port
+extension MapScene {
+    private func updateViewPort() {
+        guard let camera = self.camera else { return }
+        guard camera.position != .zero else { return }
+        
+        var port = yc_vid_region_t(
+            origin: .init(
+                x: .init(max(0, floor(camera.position.x - self.size.width / 2))),
+                y: .init(max(0, floor(-camera.position.y - self.size.height / 2)))
+            ),
+            dimensions: .init(
+                horizontal: .init(self.size.width),
+                vertical: .init(self.size.height)
+            )
+        )
+        
+        debugPrint("[!] Viewport == \(port)")
+        
+        let status = yc_vid_view_port_set(
+            withUnsafeMutablePointer(to: &self.yc_view!, { $0 }),
+            withUnsafeMutablePointer(to: &self.yc_renderer!, { $0 }),
+            withUnsafeMutablePointer(to: &port, { $0 })
+        )
+        
+        assert(status == YC_VID_STATUS_OK)
+    }
+    
+    func moved() { self.updateViewPort() }
+    func resized() { self.updateViewPort() }
 }
 
 // MARK: - Cycling
@@ -170,8 +206,13 @@ extension MapScene {
         guard let last else { return }
         
         let difference = (currentTime - last)
-        let units = ceil(difference * .init(self.yc_view!.time.scale))
-
+        self.accumulated += difference
+        
+        let units: UInt = .init(floor(self.accumulated * .init(self.yc_view!.time.scale)))
+        guard units > 0 else { return }
+        
+        self.accumulated -= .init(units) / .init(self.yc_view!.time.scale)
+        
         var seconds = yc_vid_time_seconds(
             value: .init(units),
             scale: self.yc_view!.time.scale
@@ -200,15 +241,13 @@ private extension MapScene {
         let sprite: Cache.Sprite
         do { sprite = try self.cache.fetch(for: fid) } catch { return YC_VID_STATUS_CORRUPTED }
         
-        let animation = sprite.animations[sprite.indexes[Int(orientation.rawValue)]]
+        let animation = sprite.animations[sprite.indexes[.init(orientation.rawValue)]]
+                
+        destination.pointee.count = animation.frames.count
+        destination.pointee.textures = .allocate(capacity: animation.frames.count * MemoryLayout<yc_vid_texture_t>.size)
         
         destination.pointee.fps = animation.fps
         destination.pointee.keyframe_idx = animation.keyframe_idx
-        
-        destination.pointee.count = animation.frames.count
-        
-        // TODO: Allocate in the lib, use opaque pointers from here.
-        destination.pointee.textures = .allocate(capacity: animation.frames.count * MemoryLayout<OpaquePointer>.size)
         
         for (index, frame) in animation.frames.enumerated() {
             let texture: Texture = .init(

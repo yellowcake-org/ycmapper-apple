@@ -143,7 +143,6 @@ extension MapView.Model {
                 return YC_RES_MAP_STATUS_OK
             }
             
-            
             var result = yc_res_map_parse_result_t(map: nil)
             let status = yc_res_map_parse(url.path, &io_fs_api, &fetchers, &result)
 
@@ -216,13 +215,12 @@ extension MapView.Model {
             
             let snapshot = view.texture(from: scene)
             guard let snapshot else { return self.error = Error.snapshotting }
+            guard let data = NSImage(
+                cgImage: snapshot.cgImage(),
+                size: snapshot.size()
+            ).tiffRepresentation else { return self.error = Error.snapshotting }
             
-            self.export.document = .init(
-                image: .init(
-                    cgImage: snapshot.cgImage(),
-                    size: snapshot.size()
-                )
-            )
+            self.export.document = .init(image: data)
             
             DispatchQueue.main.async(execute: { self.state.isExporting = true })
         })

@@ -10,20 +10,16 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ImageDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.png] }
-    var image: NSImage?
+    static var readableContentTypes: [UTType] { [] }
+    static var writableContentTypes: [UTType] { [.png] }
     
-    init(image: NSImage?) { self.image = image }
-
-    init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents, let image = NSImage(data: data)
-        else { throw CocoaError(.fileReadCorruptFile) }
-        
-        self.image = image
-    }
+    let image: Data
+    
+    init(image: Data) { self.image = image }
+    init(configuration: ReadConfiguration) throws { throw CancellationError() }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let representation = NSBitmapImageRep(data: self.image!.tiffRepresentation!)!
+        let representation = NSBitmapImageRep(data: self.image)!
         let contents = representation.representation(using: .png, properties: [:])!
         
         return FileWrapper(regularFileWithContents: contents)
