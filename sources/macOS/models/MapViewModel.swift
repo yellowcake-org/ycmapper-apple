@@ -216,13 +216,12 @@ extension MapView.Model {
             
             let snapshot = view.texture(from: scene)
             guard let snapshot else { return self.error = Error.snapshotting }
+            guard let data = NSImage(
+                cgImage: snapshot.cgImage(),
+                size: snapshot.size()
+            ).tiffRepresentation else { return self.error = Error.snapshotting }
             
-            self.export.document = .init(
-                image: .init(
-                    cgImage: snapshot.cgImage(),
-                    size: snapshot.size()
-                )
-            )
+            self.export.document = .init(image: data)
             
             DispatchQueue.main.async(execute: { self.state.isExporting = true })
         })
